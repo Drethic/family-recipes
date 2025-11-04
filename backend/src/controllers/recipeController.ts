@@ -27,8 +27,9 @@ export class RecipeController {
           totalPages: Math.ceil(total / limit),
         },
       });
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get recipes', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get recipes';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -44,8 +45,9 @@ export class RecipeController {
       }
 
       sendSuccess(res, recipe);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get recipe', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get recipe';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -59,8 +61,9 @@ export class RecipeController {
       const recipe = await RecipeService.create(req.body, req.user.id, req.user.role);
 
       sendCreated(res, recipe, 'Recipe created successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to create recipe', undefined, 400);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to create recipe';
+      sendError(res, message, undefined, 400);
     }
   }
 
@@ -81,12 +84,13 @@ export class RecipeController {
       }
 
       sendSuccess(res, recipe, 'Recipe updated successfully');
-    } catch (error: any) {
-      if (error.message.includes('permission')) {
-        sendError(res, error.message, undefined, 403);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update recipe';
+      if (message.includes('permission')) {
+        sendError(res, message, undefined, 403);
         return;
       }
-      sendError(res, error.message || 'Failed to update recipe', undefined, 400);
+      sendError(res, message, undefined, 400);
     }
   }
 
@@ -107,12 +111,13 @@ export class RecipeController {
       }
 
       sendNoContent(res);
-    } catch (error: any) {
-      if (error.message.includes('permission')) {
-        sendError(res, error.message, undefined, 403);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete recipe';
+      if (message.includes('permission')) {
+        sendError(res, message, undefined, 403);
         return;
       }
-      sendError(res, error.message || 'Failed to delete recipe', undefined, 500);
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -133,8 +138,9 @@ export class RecipeController {
       }
 
       sendSuccess(res, recipe, 'Recipe approved successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to approve recipe', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to approve recipe';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -155,8 +161,9 @@ export class RecipeController {
       }
 
       sendSuccess(res, recipe, 'Recipe rejected successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to reject recipe', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to reject recipe';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -170,8 +177,9 @@ export class RecipeController {
       const recipes = await RecipeService.getUserRecipes(req.user.id);
 
       sendSuccess(res, recipes);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get user recipes', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get user recipes';
+      sendError(res, message, undefined, 500);
     }
   }
 }

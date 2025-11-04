@@ -9,8 +9,9 @@ export class CategoryController {
       const categories = await db('categories').select('*').orderBy('name', 'asc');
 
       sendSuccess(res, categories);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get categories', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get categories';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -26,8 +27,9 @@ export class CategoryController {
       }
 
       sendSuccess(res, category);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get category', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get category';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -51,8 +53,9 @@ export class CategoryController {
         .returning('*');
 
       sendCreated(res, category, 'Category created successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to create category', undefined, 400);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to create category';
+      sendError(res, message, undefined, 400);
     }
   }
 
@@ -78,7 +81,7 @@ export class CategoryController {
         }
       }
 
-      const updateData: any = {};
+      const updateData: Partial<{ name: string; slug: string }> = {};
       if (name) {
         updateData.name = name;
       }
@@ -91,8 +94,9 @@ export class CategoryController {
       const updatedCategory = await db('categories').where('id', id).first();
 
       sendSuccess(res, updatedCategory, 'Category updated successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to update category', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update category';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -110,8 +114,9 @@ export class CategoryController {
       await db('categories').where('id', id).del();
 
       sendNoContent(res);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to delete category', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete category';
+      sendError(res, message, undefined, 500);
     }
   }
 }

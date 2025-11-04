@@ -1,5 +1,5 @@
 import db from '../config/database';
-import { Recipe, RecipeWithDetails, UserRole, RecipeStatus, Ingredient, Instruction } from '../types';
+import { RecipeWithDetails, UserRole, RecipeStatus, Ingredient, Instruction } from '../types';
 
 export class RecipeService {
   static async getAll(
@@ -234,14 +234,36 @@ export class RecipeService {
       }
 
       // Update recipe
-      const updateData: any = {};
-      if (data.title !== undefined) updateData.title = data.title;
-      if (data.description !== undefined) updateData.description = data.description;
-      if (data.prepTime !== undefined) updateData.prep_time = data.prepTime;
-      if (data.cookTime !== undefined) updateData.cook_time = data.cookTime;
-      if (data.servings !== undefined) updateData.servings = data.servings;
-      if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
-      if (data.isPrivate !== undefined) updateData.is_private = data.isPrivate;
+      const updateData: Partial<{
+        title: string;
+        description: string;
+        prep_time: number;
+        cook_time: number;
+        servings: number;
+        difficulty: string;
+        is_private: boolean;
+      }> = {};
+      if (data.title !== undefined) {
+updateData.title = data.title;
+}
+      if (data.description !== undefined) {
+updateData.description = data.description;
+}
+      if (data.prepTime !== undefined) {
+updateData.prep_time = data.prepTime;
+}
+      if (data.cookTime !== undefined) {
+updateData.cook_time = data.cookTime;
+}
+      if (data.servings !== undefined) {
+updateData.servings = data.servings;
+}
+      if (data.difficulty !== undefined) {
+updateData.difficulty = data.difficulty;
+}
+      if (data.isPrivate !== undefined) {
+updateData.is_private = data.isPrivate;
+}
 
       if (Object.keys(updateData).length > 0) {
         await trx('recipes').where('id', id).update(updateData);

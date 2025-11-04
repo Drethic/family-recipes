@@ -97,7 +97,7 @@ export class AuthService {
   }
 
   static sanitizeUser(user: User): Omit<User, 'password_hash'> {
-    const { password_hash, ...sanitized } = user;
+    const { password_hash: _password_hash, ...sanitized } = user;
     return sanitized;
   }
 }

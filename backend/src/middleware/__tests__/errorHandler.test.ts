@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import { errorHandler, notFoundHandler } from '../errorHandler';
 
+interface CustomError extends Error {
+  statusCode?: number;
+  errors?: Array<{ field: string; message: string }>;
+}
+
 describe('Error Handler Middleware', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -49,7 +54,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('sends error response with custom status code', () => {
-      const error: any = new Error('Bad request');
+      const error: CustomError = new Error('Bad request');
       error.statusCode = 400;
 
       errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
@@ -64,7 +69,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('includes custom errors array if provided', () => {
-      const error: any = new Error('Validation failed');
+      const error: CustomError = new Error('Validation failed');
       error.statusCode = 422;
       error.errors = [
         { field: 'email', message: 'Invalid email' },
@@ -87,7 +92,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('uses default message if error has no message', () => {
-      const error: any = {};
+      const error: Record<string, never> = {};
 
       errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
@@ -111,7 +116,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('handles error with status code 401', () => {
-      const error: any = new Error('Unauthorized');
+      const error: CustomError = new Error('Unauthorized');
       error.statusCode = 401;
 
       errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
@@ -125,7 +130,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('handles error with status code 403', () => {
-      const error: any = new Error('Forbidden');
+      const error: CustomError = new Error('Forbidden');
       error.statusCode = 403;
 
       errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
@@ -139,7 +144,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('handles error with status code 404', () => {
-      const error: any = new Error('Not found');
+      const error: CustomError = new Error('Not found');
       error.statusCode = 404;
 
       errorHandler(error, mockReq as Request, mockRes as Response, mockNext);

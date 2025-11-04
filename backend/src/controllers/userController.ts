@@ -30,8 +30,9 @@ export class UserController {
           totalPages: Math.ceil(total / limit),
         },
       });
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get users', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get users';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -50,8 +51,9 @@ export class UserController {
       }
 
       sendSuccess(res, user);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get user', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get user';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -80,8 +82,9 @@ export class UserController {
         .first();
 
       sendSuccess(res, updatedUser, 'User role updated successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to update user role', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update user role';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -105,8 +108,9 @@ export class UserController {
       await db('users').where('id', id).del();
 
       sendNoContent(res);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to delete user', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete user';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -128,7 +132,7 @@ export class UserController {
         return;
       }
 
-      const updateData: any = {};
+      const updateData: Partial<{ first_name: string; last_name: string; email: string }> = {};
       if (firstName !== undefined) {
         updateData.first_name = firstName;
       }
@@ -155,8 +159,9 @@ export class UserController {
         .first();
 
       sendSuccess(res, updatedUser, 'Profile updated successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to update profile', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -188,8 +193,9 @@ export class UserController {
         .first();
 
       sendSuccess(res, approvedUser, 'User approved successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to approve user', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to approve user';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -208,8 +214,9 @@ export class UserController {
       await db('users').where('id', id).del();
 
       sendSuccess(res, null, 'User rejected and removed');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to reject user', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to reject user';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -239,8 +246,9 @@ export class UserController {
         .first();
 
       sendSuccess(res, updatedUser, 'Theme preference updated successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to update theme preference', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update theme preference';
+      sendError(res, message, undefined, 500);
     }
   }
 
@@ -281,8 +289,9 @@ export class UserController {
       await db('users').where('id', id).update({ password_hash: hashedPassword });
 
       sendSuccess(res, null, 'Password updated successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to update password', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update password';
+      sendError(res, message, undefined, 500);
     }
   }
 }

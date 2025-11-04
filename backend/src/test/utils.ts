@@ -15,19 +15,19 @@ export const createAuthHeader = (userId: string, role: string = 'member'): strin
   return `Bearer ${token}`;
 };
 
-export const createTestUser = async (db: Knex, overrides: any = {}) => {
+export const createTestUser = async (db: Knex, overrides: Record<string, unknown> = {}) => {
   const user = await mockUser(overrides);
   const [insertedUser] = await db('users').insert(user).returning('*');
   return insertedUser;
 };
 
-export const createTestRecipe = async (db: Knex, authorId: string, overrides: any = {}) => {
+export const createTestRecipe = async (db: Knex, authorId: string, overrides: Record<string, unknown> = {}) => {
   const recipe = mockRecipe(authorId, overrides);
   const [insertedRecipe] = await db('recipes').insert(recipe).returning('*');
   return insertedRecipe;
 };
 
-export const createTestCategory = async (db: Knex, overrides: any = {}) => {
+export const createTestCategory = async (db: Knex, overrides: Record<string, unknown> = {}) => {
   const category = mockCategory(overrides);
   const [insertedCategory] = await db('categories').insert(category).returning('*');
   return insertedCategory;

@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt';
 
-export const mockUser = async (overrides: any = {}) => {
+export const mockUser = async (overrides: Record<string, unknown> = {}) => {
   const password = overrides.password || 'password123';
   const passwordHash = await bcrypt.hash(password, 10);
 
@@ -21,7 +21,7 @@ export const mockUser = async (overrides: any = {}) => {
   };
 };
 
-export const mockRecipe = (authorId: string, overrides: any = {}) => ({
+export const mockRecipe = (authorId: string, overrides: Record<string, unknown> = {}) => ({
   id: faker.string.uuid(),
   title: faker.lorem.words(3),
   description: faker.lorem.paragraph(),
@@ -37,7 +37,7 @@ export const mockRecipe = (authorId: string, overrides: any = {}) => ({
   ...overrides,
 });
 
-export const mockCategory = (overrides: any = {}) => ({
+export const mockCategory = (overrides: Record<string, unknown> = {}) => ({
   id: faker.string.uuid(),
   name: faker.lorem.word(),
   created_at: new Date(),
@@ -45,7 +45,7 @@ export const mockCategory = (overrides: any = {}) => ({
   ...overrides,
 });
 
-export const mockIngredient = (recipeId: string, orderIndex: number, overrides: any = {}) => ({
+export const mockIngredient = (recipeId: string, orderIndex: number, overrides: Record<string, unknown> = {}) => ({
   id: faker.string.uuid(),
   recipe_id: recipeId,
   name: faker.lorem.word(),
@@ -57,7 +57,7 @@ export const mockIngredient = (recipeId: string, orderIndex: number, overrides: 
   ...overrides,
 });
 
-export const mockInstruction = (recipeId: string, stepNumber: number, overrides: any = {}) => ({
+export const mockInstruction = (recipeId: string, stepNumber: number, overrides: Record<string, unknown> = {}) => ({
   id: faker.string.uuid(),
   recipe_id: recipeId,
   step_number: stepNumber,
