@@ -5,9 +5,10 @@ Full-stack family recipe sharing application with user authentication, recipe ma
 
 ## Quick Reference
 - **Frontend**: React 18 + TypeScript + Vite + TailwindCSS + Redux Toolkit
-- **Testing**: Vitest + React Testing Library + MSW
+- **Unit Testing**: Vitest + React Testing Library + MSW
+- **E2E Testing**: Playwright + axe-core (Desktop, Mobile, Tablet, Accessibility)
 - **Current Coverage**: 99.81% lines, 99.82% statements, 100% functions, 94.44% branches ✅
-- **Total Tests**: 429 (all passing ✓)
+- **Total Tests**: 429 unit tests (all passing ✓)
 - **Status**: ✅ **FRONTEND COMPLETE** - Ready for backend testing phase
 
 ## Critical Requirements
@@ -180,6 +181,77 @@ http.post(`${API_URL}/resource`, async ({ request }) => {
 }),
 ```
 
+## End-to-End Testing with Playwright
+
+### Overview
+Playwright E2E tests run in real browsers and test complete user journeys across multiple devices.
+
+**Key Features:**
+- **Multi-device testing**: Desktop (Chromium), Mobile (iPhone 14 Pro, Pixel 7), Tablet (iPad Pro)
+- **Accessibility testing**: WCAG 2.1 Level A & AA compliance with axe-core
+- **Responsive testing**: Custom viewports from 320px to 1920px
+- **Mobile emulation**: Touch events, proper user agents, device pixel ratios
+- **Parallel execution**: Fast test runs with automatic parallelization
+
+### Running E2E Tests
+
+```bash
+# Run all E2E tests on all devices
+npm run test:e2e
+
+# Run specific device
+npm run test:e2e -- --project="Desktop Chrome"
+npm run test:e2e -- --project="Mobile Safari"
+
+# Run specific test file
+npm run test:e2e e2e/accessibility.spec.ts
+
+# Debug mode with UI
+npm run test:e2e:ui
+
+# Run in headed mode (see browser)
+npm run test:e2e:headed
+
+# View test report
+npm run test:e2e:report
+```
+
+### Test Files
+
+```
+e2e/
+├── accessibility.spec.ts      # WCAG compliance, keyboard nav, color contrast
+├── auth-flow.spec.ts          # Login, register, logout, validation
+├── mobile-responsive.spec.ts  # Touch interactions, responsive design
+├── recipe-flow.spec.ts        # Recipe CRUD, admin approval workflow
+└── README.md                  # Detailed documentation
+```
+
+### Accessibility Testing
+All E2E tests should include accessibility checks:
+
+```typescript
+import AxeBuilder from '@axe-core/playwright';
+
+const results = await new AxeBuilder({ page })
+  .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+  .analyze();
+
+expect(results.violations).toEqual([]);
+```
+
+### Mobile Testing Best Practices
+1. Use `isMobile` to conditionally run mobile-specific tests
+2. Test touch interactions with `page.tap()` instead of `page.click()`
+3. Verify touch targets are ≥44x44px (WCAG 2.1)
+4. Test both portrait and landscape orientations
+5. Ensure no horizontal scrolling on mobile viewports
+
+### Resources
+- Full E2E documentation: `e2e/README.md`
+- Playwright docs: https://playwright.dev/
+- Accessibility testing: https://playwright.dev/docs/accessibility-testing
+
 ## Common Tasks
 
 ### Add Integration Tests for RTK Query API
@@ -211,6 +283,12 @@ Recipes/
 │   ├── coding-standards.md  # Development standards
 │   ├── progress.md       # Session progress tracker
 │   └── commands/         # Custom slash commands
+├── e2e/                   # Playwright E2E tests
+│   ├── accessibility.spec.ts      # Accessibility tests
+│   ├── auth-flow.spec.ts          # Authentication tests
+│   ├── mobile-responsive.spec.ts  # Mobile/responsive tests
+│   ├── recipe-flow.spec.ts        # Recipe workflow tests
+│   └── README.md                  # E2E testing documentation
 ├── frontend/
 │   └── src/
 │       ├── features/     # RTK Query APIs (categoryApi, recipeApi, etc.)
@@ -219,6 +297,7 @@ Recipes/
 │       └── test/
 │           ├── mocks/    # MSW handlers
 │           └── utils/    # Test utilities
+├── playwright.config.ts  # Playwright configuration (mobile, tablet, desktop)
 └── CLAUDE.md            # This file
 ```
 
