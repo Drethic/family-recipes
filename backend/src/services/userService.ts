@@ -73,9 +73,13 @@ export class UserService {
       return null;
     }
 
-    const updateData: any = {};
-    if (data.firstName !== undefined) updateData.first_name = data.firstName;
-    if (data.lastName !== undefined) updateData.last_name = data.lastName;
+    const updateData: Partial<{ first_name: string; last_name: string; email: string }> = {};
+    if (data.firstName !== undefined) {
+updateData.first_name = data.firstName;
+}
+    if (data.lastName !== undefined) {
+updateData.last_name = data.lastName;
+}
     if (data.email !== undefined) {
       // Check if email is already taken
       const existingUser = await db('users').where('email', data.email).whereNot('id', id).first();

@@ -1,8 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendError } from '../utils/response';
 
+interface ErrorWithStatus extends Error {
+  statusCode?: number;
+  errors?: Array<{ field: string; message: string }>;
+}
+
 export const errorHandler = (
-  err: any,
+  err: unknown,
   req: Request,
   res: Response,
   next: NextFunction
@@ -13,9 +18,10 @@ export const errorHandler = (
     return next(err);
   }
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  const errors = err.errors || [];
+  const error = err as ErrorWithStatus;
+  const statusCode = error.statusCode || 500;
+  const message = error.message || 'Internal Server Error';
+  const errors = error.errors || [];
 
   sendError(res, message, errors, statusCode);
 };

@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { ApiResponse } from '../types';
+import { ApiResponse, ValidationError } from '../types';
 
 export const sendSuccess = <T>(
   res: Response,
@@ -18,7 +18,7 @@ export const sendSuccess = <T>(
 export const sendError = (
   res: Response,
   message: string,
-  errors?: any[],
+  errors?: ValidationError[],
   statusCode: number = 400
 ): Response => {
   const response: ApiResponse = {

@@ -29,10 +29,10 @@ describe('ValidateRequest Middleware', () => {
   });
 
   it('calls next() when validation passes', () => {
-    (validationResult as any).mockReturnValue({
+    vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => true,
       array: () => [],
-    });
+    } as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 
@@ -41,13 +41,13 @@ describe('ValidateRequest Middleware', () => {
   });
 
   it('returns 400 when validation fails', () => {
-    (validationResult as any).mockReturnValue({
+    vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => false,
       array: () => [
         { path: 'email', msg: 'Invalid email format' },
         { path: 'password', msg: 'Password too short' },
       ],
-    });
+    } as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 
@@ -66,10 +66,10 @@ describe('ValidateRequest Middleware', () => {
   });
 
   it('handles single validation error', () => {
-    (validationResult as any).mockReturnValue({
+    vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => false,
       array: () => [{ path: 'username', msg: 'Username is required' }],
-    });
+    } as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 
@@ -83,10 +83,10 @@ describe('ValidateRequest Middleware', () => {
   });
 
   it('handles errors without path field', () => {
-    (validationResult as any).mockReturnValue({
+    vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => false,
       array: () => [{ msg: 'General validation error' }],
-    });
+    } as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 
@@ -100,14 +100,14 @@ describe('ValidateRequest Middleware', () => {
   });
 
   it('handles multiple errors for same field', () => {
-    (validationResult as any).mockReturnValue({
+    vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => false,
       array: () => [
         { path: 'password', msg: 'Password too short' },
         { path: 'password', msg: 'Password must contain a number' },
         { path: 'password', msg: 'Password must contain a special character' },
       ],
-    });
+    } as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 
@@ -124,10 +124,10 @@ describe('ValidateRequest Middleware', () => {
   });
 
   it('transforms error format correctly', () => {
-    (validationResult as any).mockReturnValue({
+    vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => false,
       array: () => [{ path: 'title', msg: 'Title must be at least 3 characters' }],
-    });
+    } as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 

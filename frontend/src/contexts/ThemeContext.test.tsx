@@ -4,11 +4,11 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { ThemeProvider, useTheme } from './ThemeContext';
 import authReducer from '@/features/auth/authSlice';
-import { ThemePreference } from '@/types';
+import { ThemePreference, User } from '@/types';
 import { mockUser } from '@/test/mocks/mockData';
 
 describe('ThemeContext', () => {
-  const createMockStore = (user: any = null) => {
+  const createMockStore = (user: User | null = null) => {
     return configureStore({
       reducer: {
         auth: authReducer,
@@ -35,7 +35,7 @@ describe('ThemeContext', () => {
 
   it('initializes with system theme preference when no user', () => {
     const store = createMockStore();
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -48,7 +48,7 @@ describe('ThemeContext', () => {
 
   it('initializes with user theme preference when user is logged in', () => {
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.DARK });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -61,7 +61,7 @@ describe('ThemeContext', () => {
 
   it('applies dark class when theme is dark', () => {
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.DARK });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -76,7 +76,7 @@ describe('ThemeContext', () => {
     document.documentElement.classList.add('dark');
 
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.LIGHT });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -89,7 +89,7 @@ describe('ThemeContext', () => {
 
   it('allows setting theme preference', () => {
     const store = createMockStore();
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -107,7 +107,7 @@ describe('ThemeContext', () => {
 
   it('uses system preference when set to system', () => {
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.SYSTEM });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -120,7 +120,7 @@ describe('ThemeContext', () => {
   });
 
   it('responds to system theme changes when preference is system', () => {
-    let changeListener: any = null;
+    let changeListener: (() => void) | null = null;
 
     // Mock matchMedia to capture the event listener
     const mockMatchMedia = vi.fn().mockImplementation(query => ({
@@ -144,7 +144,7 @@ describe('ThemeContext', () => {
     });
 
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.SYSTEM });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -169,7 +169,7 @@ describe('ThemeContext', () => {
 
   it('does not respond to system theme changes when preference is not system', () => {
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.DARK });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>
@@ -192,7 +192,7 @@ describe('ThemeContext', () => {
   });
 
   it('uses dark theme when system preference is dark', () => {
-    let changeListener: any = null;
+    let changeListener: (() => void) | null = null;
 
     // Mock matchMedia to return true (dark mode)
     const mockMatchMedia = vi.fn().mockImplementation(query => ({
@@ -216,7 +216,7 @@ describe('ThemeContext', () => {
     });
 
     const store = createMockStore({ ...mockUser, theme_preference: ThemePreference.SYSTEM });
-    const wrapper = ({ children }: any) => (
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
       <Provider store={store}>
         <ThemeProvider>{children}</ThemeProvider>
       </Provider>

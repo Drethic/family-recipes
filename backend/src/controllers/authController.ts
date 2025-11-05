@@ -25,8 +25,9 @@ export class AuthController {
         user: sanitizedUser,
         accessToken,
       }, 'User registered successfully');
-    } catch (error: any) {
-      sendError(res, error.message || 'Registration failed', undefined, 400);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Registration failed';
+      sendError(res, message, undefined, 400);
     }
   }
 
@@ -51,8 +52,9 @@ export class AuthController {
         user: sanitizedUser,
         accessToken,
       }, 'Login successful');
-    } catch (error: any) {
-      sendUnauthorized(res, error.message || 'Login failed');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Login failed';
+      sendUnauthorized(res, message);
     }
   }
 
@@ -87,7 +89,7 @@ export class AuthController {
       sendSuccess(res, {
         accessToken: newAccessToken,
       }, 'Token refreshed successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       sendUnauthorized(res, 'Invalid refresh token');
     }
   }
@@ -113,8 +115,9 @@ export class AuthController {
 
       const sanitizedUser = AuthService.sanitizeUser(user);
       sendSuccess(res, sanitizedUser);
-    } catch (error: any) {
-      sendError(res, error.message || 'Failed to get user', undefined, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to get user';
+      sendError(res, message, undefined, 500);
     }
   }
 }

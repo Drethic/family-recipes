@@ -116,11 +116,16 @@ export interface RecipeWithDetails extends Recipe {
   images?: RecipeImage[];
 }
 
-export interface ApiResponse<T = any> {
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
-  errors?: any[];
+  errors?: ValidationError[];
 }
 
 export interface PaginationParams {
