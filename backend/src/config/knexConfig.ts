@@ -46,6 +46,24 @@ const knexConfig: { [key: string]: Knex.Config } = {
       extension: 'ts',
     },
   },
+
+  test: {
+    client: 'postgresql',
+    connection: process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/recipes_test',
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: path.join(__dirname, '../../migrations'),
+      extension: 'ts',
+    },
+    seeds: {
+      directory: path.join(__dirname, '../../seeds'),
+      extension: 'ts',
+    },
+  },
 };
 
 export default knexConfig;
