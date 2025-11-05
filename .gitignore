@@ -43,3 +43,10 @@ uploads/
 
 # Claude temporary files
 .claude/temp/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/playwright/trace/
+*.trace.zip
