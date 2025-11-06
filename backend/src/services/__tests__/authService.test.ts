@@ -220,7 +220,7 @@ describe('AuthService', () => {
         ]),
       };
 
-      vi.mocked(db).mockReturnValue(mockDbChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDbChain as never);
       vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
       vi.mocked(bcrypt.hash).mockResolvedValue('hashed' as never);
 
@@ -254,7 +254,7 @@ describe('AuthService', () => {
         returning: vi.fn().mockResolvedValue([{ id: 'new-user' }]),
       };
 
-      vi.mocked(db).mockReturnValue(mockDbChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDbChain as never);
       vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
       vi.mocked(bcrypt.hash).mockResolvedValue('hashed_password' as never);
 
@@ -279,7 +279,7 @@ describe('AuthService', () => {
         ]),
       };
 
-      vi.mocked(db).mockReturnValue(mockDbChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDbChain as never);
       vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
       vi.mocked(bcrypt.hash).mockResolvedValue('hashed' as never);
 
@@ -304,7 +304,7 @@ describe('AuthService', () => {
         ]),
       };
 
-      vi.mocked(db).mockReturnValue(mockDbChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDbChain as never);
       vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
       vi.mocked(bcrypt.hash).mockResolvedValue('hashed' as never);
 

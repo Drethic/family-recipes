@@ -421,10 +421,12 @@ describe('RecipeService', () => {
 
   describe('create', () => {
     it('should create recipe with pending status for members', async () => {
-      const mockTransaction = {
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ id: 'recipe-1', status: RecipeStatus.PENDING }]),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockInsertChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -453,12 +455,14 @@ describe('RecipeService', () => {
     });
 
     it('should create recipe with approved status for admins', async () => {
-      const mockTransaction = {
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([
           { id: 'recipe-1', status: RecipeStatus.APPROVED, approved_by_id: 'admin-123' },
         ]),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockInsertChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -487,10 +491,12 @@ describe('RecipeService', () => {
     });
 
     it('should create ingredients for recipe', async () => {
-      const mockTransaction = {
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ id: 'recipe-1' }]),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockInsertChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -515,14 +521,16 @@ describe('RecipeService', () => {
 
       await RecipeService.create(recipeData, 'member-123', UserRole.MEMBER);
 
-      expect(mockTransaction.insert).toHaveBeenCalled();
+      expect(mockInsertChain.insert).toHaveBeenCalled();
     });
 
     it('should link categories to recipe', async () => {
-      const mockTransaction = {
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         returning: vi.fn().mockResolvedValue([{ id: 'recipe-1' }]),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockInsertChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -545,7 +553,7 @@ describe('RecipeService', () => {
 
       await RecipeService.create(recipeData, 'member-123', UserRole.MEMBER);
 
-      expect(mockTransaction.insert).toHaveBeenCalled();
+      expect(mockInsertChain.insert).toHaveBeenCalled();
     });
   });
 
@@ -553,11 +561,13 @@ describe('RecipeService', () => {
     it('should allow owner to update their recipe', async () => {
       const mockRecipe = { id: 'recipe-1', author_id: 'member-123' };
 
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(mockRecipe),
         update: vi.fn().mockResolvedValue(1),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -578,11 +588,13 @@ describe('RecipeService', () => {
     it('should allow admin to update any recipe', async () => {
       const mockRecipe = { id: 'recipe-1', author_id: 'other-user' };
 
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(mockRecipe),
         update: vi.fn().mockResolvedValue(1),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -603,10 +615,12 @@ describe('RecipeService', () => {
     it('should throw error if non-owner member tries to update', async () => {
       const mockRecipe = { id: 'recipe-1', author_id: 'other-member' };
 
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(mockRecipe),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -618,10 +632,12 @@ describe('RecipeService', () => {
     });
 
     it('should return null if recipe does not exist', async () => {
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(null),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -640,13 +656,15 @@ describe('RecipeService', () => {
     it('should update ingredients if provided', async () => {
       const mockRecipe = { id: 'recipe-1', author_id: 'member-123' };
 
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(mockRecipe),
         update: vi.fn().mockResolvedValue(1),
         del: vi.fn().mockResolvedValue(1),
         insert: vi.fn().mockReturnThis(),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -663,20 +681,22 @@ describe('RecipeService', () => {
         UserRole.MEMBER
       );
 
-      expect(mockTransaction.del).toHaveBeenCalled();
-      expect(mockTransaction.insert).toHaveBeenCalled();
+      expect(mockQueryChain.del).toHaveBeenCalled();
+      expect(mockQueryChain.insert).toHaveBeenCalled();
     });
 
     it('should update instructions if provided', async () => {
       const mockRecipe = { id: 'recipe-1', author_id: 'member-123' };
 
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(mockRecipe),
         update: vi.fn().mockResolvedValue(1),
         del: vi.fn().mockResolvedValue(1),
         insert: vi.fn().mockReturnThis(),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -693,20 +713,22 @@ describe('RecipeService', () => {
         UserRole.MEMBER
       );
 
-      expect(mockTransaction.del).toHaveBeenCalled();
-      expect(mockTransaction.insert).toHaveBeenCalled();
+      expect(mockQueryChain.del).toHaveBeenCalled();
+      expect(mockQueryChain.insert).toHaveBeenCalled();
     });
 
     it('should update categories if provided', async () => {
       const mockRecipe = { id: 'recipe-1', author_id: 'member-123' };
 
-      const mockTransaction = {
+      const mockQueryChain = {
         where: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(mockRecipe),
         update: vi.fn().mockResolvedValue(1),
         del: vi.fn().mockResolvedValue(1),
         insert: vi.fn().mockReturnThis(),
       };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
 
       vi.mocked(db.transaction).mockImplementation(async (callback) => {
         return callback(mockTransaction as never);
@@ -723,8 +745,8 @@ describe('RecipeService', () => {
         UserRole.MEMBER
       );
 
-      expect(mockTransaction.del).toHaveBeenCalled();
-      expect(mockTransaction.insert).toHaveBeenCalled();
+      expect(mockQueryChain.del).toHaveBeenCalled();
+      expect(mockQueryChain.insert).toHaveBeenCalled();
     });
   });
 

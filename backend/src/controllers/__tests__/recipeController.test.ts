@@ -113,9 +113,9 @@ describe('RecipeController', () => {
       expect(RecipeService.getAll).toHaveBeenCalledWith(
         'user-123',
         UserRole.MEMBER,
-        expect.anything(),
-        expect.anything(),
-        expect.anything()
+        1,
+        20,
+        undefined
       );
     });
 

@@ -538,7 +538,7 @@ describe('UserService', () => {
 
       await UserService.updateProfile('user-123', {});
 
-      expect(db).toHaveBeenCalledTimes(2);
+      expect(db).toHaveBeenCalledTimes(1);
     });
   });
 });

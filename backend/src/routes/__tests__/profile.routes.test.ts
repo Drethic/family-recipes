@@ -22,7 +22,7 @@ describe('Profile Routes', () => {
 
     // Add 27 more tests for completeness
     for (let i = 0; i < 27; i++) {
-      it(`should have valid profile route test ${i + 4}\`, () => {
+      it(`should have valid profile route test ${i + 4}`, () => {
         expect(routes.length).toBeGreaterThan(0);
       });
     }

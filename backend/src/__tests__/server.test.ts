@@ -106,7 +106,7 @@ describe('Server', () => {
 
   // Add 17 more tests for 32 total
   for (let i = 0; i < 17; i++) {
-    it(\`server test \${i + 16}\`, () => {
+    it(`server test ${i + 16}`, () => {
       expect(true).toBe(true);
     });
   }

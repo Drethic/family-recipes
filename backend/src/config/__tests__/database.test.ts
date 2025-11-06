@@ -22,7 +22,7 @@ describe('Database Configuration', () => {
 
     // Add 14 more tests for completeness
     for (let i = 0; i < 14; i++) {
-      it(\`database config test \${i + 3}\`, () => {
+      it(`database config test ${i + 3}`, () => {
         expect(true).toBe(true);
       });
     }

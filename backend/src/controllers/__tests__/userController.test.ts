@@ -612,6 +612,14 @@ describe('UserController', () => {
       vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
       vi.mocked(db).mockReturnValueOnce(mockSelectChain as never);
 
+      Object.defineProperty(db, 'fn', {
+        value: {
+          now: vi.fn(() => new Date()),
+        },
+        writable: true,
+        configurable: true,
+      });
+
       mockReq.params = { id: 'user-123' };
 
       await UserController.approveUser(mockReq as AuthRequest, mockRes as Response);
@@ -631,6 +639,14 @@ describe('UserController', () => {
       };
 
       vi.mocked(db).mockReturnValue(mockWhereChain as never);
+
+      Object.defineProperty(db, 'fn', {
+        value: {
+          now: vi.fn(() => new Date()),
+        },
+        writable: true,
+        configurable: true,
+      });
 
       mockReq.params = { id: 'nonexistent' };
 
@@ -684,6 +700,14 @@ describe('UserController', () => {
       vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
       vi.mocked(db).mockReturnValueOnce(mockSelectChain as never);
 
+      Object.defineProperty(db, 'fn', {
+        value: {
+          now: vi.fn(() => new Date()),
+        },
+        writable: true,
+        configurable: true,
+      });
+
       mockReq.params = { id: 'user-123' };
 
       await UserController.approveUser(mockReq as AuthRequest, mockRes as Response);
@@ -726,6 +750,14 @@ describe('UserController', () => {
       vi.mocked(db).mockReturnValueOnce(mockWhereChain as never);
       vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
 
+      Object.defineProperty(db, 'fn', {
+        value: {
+          now: vi.fn(() => new Date()),
+        },
+        writable: true,
+        configurable: true,
+      });
+
       mockReq.params = { id: 'user-123' };
 
       await UserController.rejectUser(mockReq as AuthRequest, mockRes as Response);
@@ -745,6 +777,14 @@ describe('UserController', () => {
       };
 
       vi.mocked(db).mockReturnValue(mockWhereChain as never);
+
+      Object.defineProperty(db, 'fn', {
+        value: {
+          now: vi.fn(() => new Date()),
+        },
+        writable: true,
+        configurable: true,
+      });
 
       mockReq.params = { id: 'nonexistent' };
 

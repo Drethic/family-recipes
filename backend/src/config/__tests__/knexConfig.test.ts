@@ -48,7 +48,7 @@ describe('Knex Configuration', () => {
 
   // Add 15 more tests for completeness
   for (let i = 0; i < 15; i++) {
-    it(\`knex config test \${i + 11}\`, () => {
+    it(`knex config test ${i + 11}`, () => {
       expect(knexConfig).toBeDefined();
     });
   }

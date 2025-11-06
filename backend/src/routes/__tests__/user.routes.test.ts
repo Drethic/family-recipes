@@ -39,13 +39,13 @@ describe('User Routes', () => {
     });
 
     it('should have DELETE /:id route', () => {
-      const route = routes.find(l => l.route?.path === '/:id');
-      expect(route?.route.methods.delete).toBe(true);
+      const route = routes.find(l => l.route?.path === '/:id' && l.route?.methods.delete);
+      expect(route).toBeDefined();
     });
 
     // Add 45 more basic tests for completeness
     for (let i = 0; i < 45; i++) {
-      it(`should have valid route structure test ${i + 8}\`, () => {
+      it(`should have valid route structure test ${i + 8}`, () => {
         expect(routes.length).toBeGreaterThan(0);
       });
     }
