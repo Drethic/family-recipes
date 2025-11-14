@@ -100,13 +100,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Start services with docker-compose
-        run: docker-compose up -d
+      - name: Start services with docker compose
+        run: docker compose up -d
 
       - name: Wait for database to be ready
         run: |
           echo "Waiting for PostgreSQL to be healthy..."
-          timeout 60 bash -c 'until docker-compose exec -T db pg_isready -U recipeuser; do echo "Waiting..."; sleep 2; done'
+          timeout 60 bash -c 'until docker compose exec -T db pg_isready -U recipeuser; do echo "Waiting..."; sleep 2; done'
           echo "✓ PostgreSQL is ready"
 
       - name: Wait for backend to be ready
@@ -122,10 +122,10 @@ jobs:
           echo "✓ Frontend is ready"
 
       - name: Run database migrations
-        run: docker-compose exec -T backend npm run migrate:latest
+        run: docker compose exec -T backend npm run migrate:latest
 
       - name: Run database seeds (test data)
-        run: docker-compose exec -T backend npm run seed:run
+        run: docker compose exec -T backend npm run seed:run
 
       - name: Install Playwright dependencies
         run: |
@@ -150,12 +150,12 @@ jobs:
         if: failure()
         run: |
           echo "=== Backend Logs ==="
-          docker-compose logs backend
+          docker compose logs backend
           echo "=== Database Logs ==="
-          docker-compose logs db
+          docker compose logs db
           echo "=== Frontend Logs ==="
-          docker-compose logs frontend
+          docker compose logs frontend
 
       - name: Stop services
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v

@@ -1,5 +1,5 @@
 import { ReactElement, ReactNode } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render as rtlRender, RenderOptions } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
@@ -64,8 +64,20 @@ export function renderWithProviders(
     );
   }
 
-  return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
+  return { store, ...rtlRender(ui, { wrapper: Wrapper, ...renderOptions }) };
 }
 
-export * from '@testing-library/react';
+// Re-export commonly used testing utilities explicitly
+export {
+  screen,
+  waitFor,
+  within,
+  fireEvent,
+  act,
+  cleanup,
+  renderHook,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
+
+// Export our custom render as the default render
 export { renderWithProviders as render };
