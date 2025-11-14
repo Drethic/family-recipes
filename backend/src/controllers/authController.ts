@@ -89,7 +89,7 @@ export class AuthController {
       sendSuccess(res, {
         accessToken: newAccessToken,
       }, 'Token refreshed successfully');
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       sendUnauthorized(res, 'Invalid refresh token');
     }
   }

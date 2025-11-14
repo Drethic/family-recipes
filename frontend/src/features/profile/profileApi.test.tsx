@@ -100,7 +100,7 @@ describe('profileApi', () => {
       await act(async () => {
         try {
           await result.current[0](updateData).unwrap();
-        } catch (error) {
+        } catch (_error) {
           // May fail due to lack of auth
         }
       });

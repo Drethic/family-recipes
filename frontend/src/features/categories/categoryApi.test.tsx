@@ -258,7 +258,7 @@ describe('categoryApi', () => {
       await act(async () => {
         try {
           await result.current[0](newCategory).unwrap();
-        } catch (error) {
+        } catch (_error) {
           // May fail due to lack of auth, that's expected
         }
       });
