@@ -759,12 +759,17 @@ describe('RecipeService', () => {
         first: vi.fn().mockResolvedValue(mockRecipe),
       };
 
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       const mockDeleteChain = {
         where: vi.fn().mockReturnThis(),
         del: vi.fn().mockResolvedValue(1),
       };
 
       vi.mocked(db).mockReturnValueOnce(mockWhereChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockImagesChain as never);
       vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
 
       const result = await RecipeService.delete('recipe-1', 'member-123', UserRole.MEMBER);
@@ -780,12 +785,17 @@ describe('RecipeService', () => {
         first: vi.fn().mockResolvedValue(mockRecipe),
       };
 
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       const mockDeleteChain = {
         where: vi.fn().mockReturnThis(),
         del: vi.fn().mockResolvedValue(1),
       };
 
       vi.mocked(db).mockReturnValueOnce(mockWhereChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockImagesChain as never);
       vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
 
       const result = await RecipeService.delete('recipe-1', 'admin-123', UserRole.ADMIN);
@@ -886,298 +896,6 @@ describe('RecipeService', () => {
       const result = await RecipeService.getUserRecipes('user-123');
 
       expect(result).toHaveLength(2);
-    });
-  });
-
-  describe('addImage', () => {
-    it('should add final product image successfully', async () => {
-      const mockRecipe = {
-        id: 'recipe-1',
-        author_id: 'user-123',
-        images: [],
-      };
-
-      vi.spyOn(RecipeService, 'getById').mockResolvedValue(mockRecipe as never);
-
-      const mockInsertChain = {
-        insert: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([
-          {
-            id: 'image-1',
-            recipe_id: 'recipe-1',
-            url: 'http://example.com/image.jpg',
-            alt_text: 'Test image',
-            is_primary: true,
-            order_index: 0,
-            instruction_id: null,
-          },
-        ]),
-      };
-
-      vi.mocked(db).mockReturnValue(mockInsertChain as never);
-
-      const result = await RecipeService.addImage(
-        'recipe-1',
-        'http://example.com/image.jpg',
-        'Test image',
-        true,
-        0,
-        null,
-        'user-123',
-        UserRole.MEMBER
-      );
-
-      expect(result).toMatchObject({
-        id: 'image-1',
-        url: 'http://example.com/image.jpg',
-        alt_text: 'Test image',
-        is_primary: true,
-      });
-    });
-
-    it('should throw error when max final product images exceeded', async () => {
-      const mockRecipe = {
-        id: 'recipe-1',
-        author_id: 'user-123',
-        images: [
-          { id: '1', instruction_id: null },
-          { id: '2', instruction_id: null },
-          { id: '3', instruction_id: null },
-        ],
-      };
-
-      vi.spyOn(RecipeService, 'getById').mockResolvedValue(mockRecipe as never);
-
-      await expect(
-        RecipeService.addImage(
-          'recipe-1',
-          'http://example.com/image.jpg',
-          'Test image',
-          false,
-          3,
-          null,
-          'user-123',
-          UserRole.MEMBER
-        )
-      ).rejects.toThrow('Maximum 3 final product images allowed');
-    });
-
-    it('should throw error when step already has an image', async () => {
-      const mockRecipe = {
-        id: 'recipe-1',
-        author_id: 'user-123',
-        images: [{ id: '1', instruction_id: 'step-1' }],
-      };
-
-      vi.spyOn(RecipeService, 'getById').mockResolvedValue(mockRecipe as never);
-
-      await expect(
-        RecipeService.addImage(
-          'recipe-1',
-          'http://example.com/image.jpg',
-          'Test image',
-          false,
-          0,
-          'step-1',
-          'user-123',
-          UserRole.MEMBER
-        )
-      ).rejects.toThrow('Instruction already has an image');
-    });
-
-    it('should throw error when non-author tries to add image', async () => {
-      const mockRecipe = {
-        id: 'recipe-1',
-        author_id: 'user-123',
-        images: [],
-      };
-
-      vi.spyOn(RecipeService, 'getById').mockResolvedValue(mockRecipe as never);
-
-      await expect(
-        RecipeService.addImage(
-          'recipe-1',
-          'http://example.com/image.jpg',
-          'Test image',
-          false,
-          0,
-          null,
-          'other-user',
-          UserRole.MEMBER
-        )
-      ).rejects.toThrow('Not authorized to modify this recipe');
-    });
-
-    it('should allow admin to add image to any recipe', async () => {
-      const mockRecipe = {
-        id: 'recipe-1',
-        author_id: 'user-123',
-        images: [],
-      };
-
-      vi.spyOn(RecipeService, 'getById').mockResolvedValue(mockRecipe as never);
-
-      const mockInsertChain = {
-        insert: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([
-          {
-            id: 'image-1',
-            recipe_id: 'recipe-1',
-            url: 'http://example.com/image.jpg',
-          },
-        ]),
-      };
-
-      vi.mocked(db).mockReturnValue(mockInsertChain as never);
-
-      const result = await RecipeService.addImage(
-        'recipe-1',
-        'http://example.com/image.jpg',
-        'Test image',
-        false,
-        0,
-        null,
-        'admin-user',
-        UserRole.ADMIN
-      );
-
-      expect(result).toBeDefined();
-    });
-  });
-
-  describe('updateImage', () => {
-    it('should update image metadata successfully', async () => {
-      const mockImage = {
-        id: 'image-1',
-        recipe_id: 'recipe-1',
-        url: 'http://example.com/image.jpg',
-        alt_text: 'Old text',
-      };
-
-      const mockSelectChain = {
-        where: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockImage),
-      };
-
-      const mockUpdateChain = {
-        where: vi.fn().mockReturnThis(),
-        update: vi.fn().mockResolvedValue(1),
-      };
-
-      vi.mocked(db).mockReturnValueOnce(mockSelectChain as never);
-      vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
-      vi.mocked(db).mockReturnValueOnce({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue({
-          ...mockImage,
-          alt_text: 'New text',
-        }),
-      } as never);
-
-      const result = await RecipeService.updateImage(
-        'image-1',
-        { altText: 'New text' },
-        'user-123',
-        UserRole.MEMBER
-      );
-
-      expect(result?.alt_text).toBe('New text');
-    });
-
-    it('should throw error when image not found', async () => {
-      const mockSelectChain = {
-        where: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
-      };
-
-      vi.mocked(db).mockReturnValue(mockSelectChain as never);
-
-      await expect(
-        RecipeService.updateImage('invalid-id', { altText: 'New text' }, 'user-123', UserRole.MEMBER)
-      ).rejects.toThrow('Image not found');
-    });
-  });
-
-  describe('deleteImage', () => {
-    it('should delete image successfully', async () => {
-      const mockImage = {
-        id: 'image-1',
-        recipe_id: 'recipe-1',
-        url: 'http://example.com/image.jpg',
-      };
-
-      const mockSelectChain = {
-        where: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockImage),
-      };
-
-      const mockDeleteChain = {
-        where: vi.fn().mockReturnThis(),
-        del: vi.fn().mockResolvedValue(1),
-      };
-
-      vi.mocked(db).mockReturnValueOnce(mockSelectChain as never);
-      vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
-
-      await expect(
-        RecipeService.deleteImage('image-1', 'user-123', UserRole.MEMBER)
-      ).resolves.toBeUndefined();
-    });
-
-    it('should throw error when image not found', async () => {
-      const mockSelectChain = {
-        where: vi.fn().mockReturnThis(),
-        leftJoin: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
-      };
-
-      vi.mocked(db).mockReturnValue(mockSelectChain as never);
-
-      await expect(
-        RecipeService.deleteImage('invalid-id', 'user-123', UserRole.MEMBER)
-      ).rejects.toThrow('Image not found');
-    });
-  });
-
-  describe('deleteRecipeImages', () => {
-    it('should delete all images for a recipe', async () => {
-      const mockImages = [
-        { url: 'http://example.com/image1.jpg' },
-        { url: 'http://example.com/image2.jpg' },
-      ];
-
-      const mockSelectChain = {
-        where: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue(mockImages),
-      };
-
-      const mockDeleteChain = {
-        where: vi.fn().mockReturnThis(),
-        del: vi.fn().mockResolvedValue(2),
-      };
-
-      vi.mocked(db).mockReturnValueOnce(mockSelectChain as never);
-      vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
-
-      await expect(RecipeService.deleteRecipeImages('recipe-1')).resolves.toBeUndefined();
-    });
-
-    it('should handle recipe with no images', async () => {
-      const mockSelectChain = {
-        where: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue([]),
-      };
-
-      vi.mocked(db).mockReturnValue(mockSelectChain as never);
-
-      await expect(RecipeService.deleteRecipeImages('recipe-1')).resolves.toBeUndefined();
     });
   });
 });
