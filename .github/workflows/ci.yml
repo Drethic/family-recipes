@@ -99,16 +99,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Start services with docker-compose
+        run: docker-compose up -d
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - name: Wait for database to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be healthy..."
+          timeout 60 bash -c 'until docker-compose exec -T db pg_isready -U recipeuser; do echo "Waiting..."; sleep 2; done'
+          echo "✓ PostgreSQL is ready"
+
+      - name: Wait for backend to be ready
+        run: |
+          echo "Waiting for backend API to be healthy..."
+          timeout 90 bash -c 'until curl -f http://localhost:5000/health 2>/dev/null; do echo "Waiting..."; sleep 2; done'
+          echo "✓ Backend API is ready"
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Waiting for frontend to be ready..."
+          timeout 90 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do echo "Waiting..."; sleep 2; done'
+          echo "✓ Frontend is ready"
+
+      - name: Run database migrations
+        run: docker-compose exec -T backend npm run migrate:latest
+
+      - name: Run database seeds (test data)
+        run: docker-compose exec -T backend npm run seed:run
+
+      - name: Install Playwright dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npm run test:e2e
+        run: npx playwright test --project="Desktop Chrome"
+        env:
+          BASE_URL: http://localhost:5173
+          CI: true
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -117,3 +145,17 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+      - name: Print service logs on failure
+        if: failure()
+        run: |
+          echo "=== Backend Logs ==="
+          docker-compose logs backend
+          echo "=== Database Logs ==="
+          docker-compose logs db
+          echo "=== Frontend Logs ==="
+          docker-compose logs frontend
+
+      - name: Stop services
+        if: always()
+        run: docker-compose down -v
