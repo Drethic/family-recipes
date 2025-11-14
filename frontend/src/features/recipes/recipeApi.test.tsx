@@ -316,4 +316,52 @@ describe('recipeApi', () => {
     });
   });
 
+  describe('useUploadRecipeImageMutation', () => {
+    it('hook renders and returns mutation tuple', () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUploadRecipeImageMutation(), { wrapper });
+
+      expect(result.current).toBeDefined();
+      expect(Array.isArray(result.current)).toBe(true);
+      expect(result.current).toHaveLength(2);
+      expect(typeof result.current[0]).toBe('function');
+    });
+  });
+
+  describe('useUpdateRecipeImageMutation', () => {
+    it('hook renders and returns mutation tuple', () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUpdateRecipeImageMutation(), { wrapper });
+
+      expect(result.current).toBeDefined();
+      expect(Array.isArray(result.current)).toBe(true);
+      expect(result.current).toHaveLength(2);
+      expect(typeof result.current[0]).toBe('function');
+    });
+  });
+
+  describe('useDeleteRecipeImageMutation', () => {
+    it('hook renders and returns mutation tuple', () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useDeleteRecipeImageMutation(), { wrapper });
+
+      expect(result.current).toBeDefined();
+      expect(Array.isArray(result.current)).toBe(true);
+      expect(result.current).toHaveLength(2);
+      expect(typeof result.current[0]).toBe('function');
+    });
+  });
+
 });
