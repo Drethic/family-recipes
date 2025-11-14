@@ -168,9 +168,12 @@ test.describe('Mobile Responsive Design', () => {
     expect(hamburgerExists).toBeGreaterThan(0);
   });
 
-  test('Tablet viewport should show tablet-optimized layout', async ({ page, viewportSize }) => {
+  test('Tablet viewport should show tablet-optimized layout', async ({ page }) => {
+    // Get viewport size from page
+    const viewport = page.viewportSize();
+
     // Skip if not tablet size (768-1024px)
-    if (!viewportSize || viewportSize.width < 768 || viewportSize.width > 1024) {
+    if (!viewport || viewport.width < 768 || viewport.width > 1024) {
       test.skip();
       return;
     }

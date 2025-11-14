@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider } from './contexts/ThemeProvider';
 import { UserRole } from './types';
 
 // Pages (to be created)
