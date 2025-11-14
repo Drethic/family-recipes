@@ -4,7 +4,7 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
-!environments/*.tfvars
+!environments/*.tfvars.example
 
 # Crash log files
 crash.log
