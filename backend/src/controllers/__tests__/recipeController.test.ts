@@ -653,4 +653,223 @@ describe('RecipeController', () => {
       );
     });
   });
+
+  describe('uploadImage', () => {
+    const mockUploadService = {
+      uploadImage: vi.fn(),
+      deleteImage: vi.fn(),
+    };
+
+    beforeEach(() => {
+      mockReq.file = {
+        fieldname: 'image',
+        originalname: 'test.jpg',
+        encoding: '7bit',
+        mimetype: 'image/jpeg',
+        size: 1024,
+        buffer: Buffer.from('test'),
+      } as Express.Multer.File;
+      mockReq.params = { id: 'recipe-1' };
+      mockReq.body = {
+        altText: 'Test image',
+        isPrimary: 'true',
+        orderIndex: '0',
+      };
+    });
+
+    it('should upload image successfully', async () => {
+      const mockImage = {
+        id: 'image-1',
+        url: 'http://example.com/image.jpg',
+        alt_text: 'Test image',
+      };
+
+      mockUploadService.uploadImage.mockResolvedValue({
+        url: 'http://example.com/image.jpg',
+        filename: 'test.jpg',
+      });
+
+      vi.mocked(RecipeService.addImage).mockResolvedValue(mockImage as never);
+
+      await RecipeController.uploadImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(201);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          data: mockImage,
+        })
+      );
+    });
+
+    it('should return 400 if no file provided', async () => {
+      mockReq.file = undefined;
+
+      await RecipeController.uploadImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: 'No image file provided',
+        })
+      );
+    });
+
+    it('should handle upload errors', async () => {
+      vi.mocked(RecipeService.addImage).mockRejectedValue(new Error('Upload failed'));
+
+      await RecipeController.uploadImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+    });
+
+    it('should handle step images with instructionId', async () => {
+      mockReq.body.instructionId = 'step-1';
+
+      mockUploadService.uploadImage.mockResolvedValue({
+        url: 'http://example.com/image.jpg',
+        filename: 'test.jpg',
+      });
+
+      vi.mocked(RecipeService.addImage).mockResolvedValue({
+        id: 'image-1',
+        instruction_id: 'step-1',
+      } as never);
+
+      await RecipeController.uploadImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(RecipeService.addImage).toHaveBeenCalledWith(
+        'recipe-1',
+        expect.any(String),
+        'Test image',
+        true,
+        0,
+        'step-1',
+        'user-123',
+        UserRole.MEMBER
+      );
+    });
+  });
+
+  describe('updateImage', () => {
+    beforeEach(() => {
+      mockReq.params = { imageId: 'image-1' };
+      mockReq.body = {
+        altText: 'Updated alt text',
+        isPrimary: true,
+        orderIndex: 1,
+      };
+    });
+
+    it('should update image successfully', async () => {
+      const mockImage = {
+        id: 'image-1',
+        alt_text: 'Updated alt text',
+        is_primary: true,
+        order_index: 1,
+      };
+
+      vi.mocked(RecipeService.updateImage).mockResolvedValue(mockImage as never);
+
+      await RecipeController.updateImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          data: mockImage,
+        })
+      );
+    });
+
+    it('should return 404 if image not found', async () => {
+      vi.mocked(RecipeService.updateImage).mockResolvedValue(null);
+
+      await RecipeController.updateImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: 'Image not found',
+        })
+      );
+    });
+
+    it('should handle update errors', async () => {
+      vi.mocked(RecipeService.updateImage).mockRejectedValue(new Error('Update failed'));
+
+      await RecipeController.updateImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+    });
+
+    it('should pass correct parameters to service', async () => {
+      vi.mocked(RecipeService.updateImage).mockResolvedValue({ id: 'image-1' } as never);
+
+      await RecipeController.updateImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(RecipeService.updateImage).toHaveBeenCalledWith(
+        'image-1',
+        {
+          altText: 'Updated alt text',
+          isPrimary: true,
+          orderIndex: 1,
+        },
+        'user-123',
+        UserRole.MEMBER
+      );
+    });
+  });
+
+  describe('deleteImage', () => {
+    beforeEach(() => {
+      mockReq.params = { imageId: 'image-1' };
+    });
+
+    it('should delete image successfully', async () => {
+      vi.mocked(RecipeService.deleteImage).mockResolvedValue(undefined);
+
+      await RecipeController.deleteImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: 'Image deleted successfully',
+        })
+      );
+    });
+
+    it('should handle delete errors', async () => {
+      vi.mocked(RecipeService.deleteImage).mockRejectedValue(new Error('Delete failed'));
+
+      await RecipeController.deleteImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+    });
+
+    it('should pass correct parameters to service', async () => {
+      vi.mocked(RecipeService.deleteImage).mockResolvedValue(undefined);
+
+      await RecipeController.deleteImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(RecipeService.deleteImage).toHaveBeenCalledWith('image-1', 'user-123', UserRole.MEMBER);
+    });
+
+    it('should handle not found errors', async () => {
+      vi.mocked(RecipeService.deleteImage).mockRejectedValue(new Error('Image not found'));
+
+      await RecipeController.deleteImage(mockReq as AuthRequest, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: 'Image not found',
+        })
+      );
+    });
+  });
 });
