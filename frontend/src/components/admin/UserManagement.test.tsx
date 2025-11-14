@@ -252,12 +252,12 @@ describe('UserManagement Component', () => {
       return row?.textContent?.includes('Test User') && row?.textContent?.includes('test@example.com');
     });
 
-    if (testUserSelect) {
-      await user.selectOptions(testUserSelect, 'admin');
-      // Role change triggers API call - the value may revert based on server response
-      // Just verify the selection attempt was made
-      expect(testUserSelect).toBeDefined();
-    }
+    expect(testUserSelect).toBeTruthy();
+
+    await user.selectOptions(testUserSelect!, 'admin');
+    // Role change triggers API call - the value may revert based on server response
+    // Just verify the selection attempt was made
+    expect(testUserSelect).toBeDefined();
   });
 
   it('disables role select for unapproved users', async () => {
@@ -570,16 +570,16 @@ describe('UserManagement Component', () => {
       return row?.textContent?.includes('Test User') && row?.textContent?.includes('test@example.com');
     });
 
-    if (testUserSelect) {
-      await user.selectOptions(testUserSelect, 'admin');
+    expect(testUserSelect).toBeTruthy();
 
-      await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to update user role:',
-          expect.anything()
-        );
-      });
-    }
+    await user.selectOptions(testUserSelect!, 'admin');
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to update user role:',
+        expect.anything()
+      );
+    });
 
     consoleSpy.mockRestore();
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImageUpload } from './ImageUpload';
 
@@ -336,69 +336,52 @@ describe('ImageUpload', () => {
     render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
     const uploadArea = screen.getByText(/Click to upload/i).closest('div');
+    expect(uploadArea).toBeTruthy();
+    expect(uploadArea?.parentElement).toBeTruthy();
 
-    if (uploadArea?.parentElement) {
-      const dragEvent = new DragEvent('dragenter', {
-        bubbles: true,
-        cancelable: true,
-      });
+    const dropZone = uploadArea!.parentElement!;
+    fireEvent.dragEnter(dropZone);
 
-      uploadArea.parentElement.dispatchEvent(dragEvent);
-
-      await waitFor(() => {
-        expect(uploadArea.parentElement).toHaveClass('border-blue-500');
-      });
-    }
+    await waitFor(() => {
+      expect(dropZone).toHaveClass('border-blue-500');
+    });
   });
 
   it('should handle drag leave', async () => {
     render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
     const uploadArea = screen.getByText(/Click to upload/i).closest('div');
+    expect(uploadArea).toBeTruthy();
+    expect(uploadArea?.parentElement).toBeTruthy();
 
-    if (uploadArea?.parentElement) {
-      const dragEnter = new DragEvent('dragenter', {
-        bubbles: true,
-        cancelable: true,
-      });
-      uploadArea.parentElement.dispatchEvent(dragEnter);
+    const dropZone = uploadArea!.parentElement!;
+    fireEvent.dragEnter(dropZone);
+    fireEvent.dragLeave(dropZone);
 
-      const dragLeave = new DragEvent('dragleave', {
-        bubbles: true,
-        cancelable: true,
-      });
-      uploadArea.parentElement.dispatchEvent(dragLeave);
-
-      await waitFor(() => {
-        expect(uploadArea.parentElement).toHaveClass('border-gray-300');
-      });
-    }
+    await waitFor(() => {
+      expect(dropZone).toHaveClass('border-gray-300');
+    });
   });
 
   it('should handle drop event', async () => {
     render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
     const uploadArea = screen.getByText(/Click to upload/i).closest('div');
+    expect(uploadArea).toBeTruthy();
+    expect(uploadArea?.parentElement).toBeTruthy();
+
+    const dropZone = uploadArea!.parentElement!;
     const file = new File(['image'], 'test.jpg', { type: 'image/jpeg' });
 
-    if (uploadArea?.parentElement) {
-      const dropEvent = new DragEvent('drop', {
-        bubbles: true,
-        cancelable: true,
-      });
+    fireEvent.drop(dropZone, {
+      dataTransfer: {
+        files: [file],
+      },
+    });
 
-      Object.defineProperty(dropEvent, 'dataTransfer', {
-        value: {
-          files: [file],
-        },
-      });
-
-      uploadArea.parentElement.dispatchEvent(dropEvent);
-
-      await waitFor(() => {
-        expect(mockOnImagesChange).toHaveBeenCalled();
-      });
-    }
+    await waitFor(() => {
+      expect(mockOnImagesChange).toHaveBeenCalled();
+    });
   });
 
   it('should render with existing images', () => {

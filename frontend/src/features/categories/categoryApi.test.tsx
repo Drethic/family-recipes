@@ -146,12 +146,10 @@ describe('categoryApi', () => {
       const { result } = renderHook(() => useGetCategoriesQuery(), { wrapper });
 
       await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError).toBe(true);
+        expect(result.current.isSuccess).toBe(true);
       });
 
-      if (result.current.isSuccess) {
-        expect(result.current.data?.success).toBe(true);
-      }
+      expect(result.current.data?.success).toBe(true);
     });
 
     it('handles response with no data array', async () => {

@@ -155,11 +155,12 @@ describe('ThemeContext', () => {
     // Initially light (matchMedia mocked to return false)
     expect(result.current.theme).toBe('light');
 
+    // Verify the listener was registered
+    expect(changeListener).toBeTruthy();
+
     // Simulate system preference change by calling the listener directly
     act(() => {
-      if (changeListener) {
-        changeListener();
-      }
+      changeListener!();
     });
 
     // Theme should still be light because our mock matchMedia always returns matches: false

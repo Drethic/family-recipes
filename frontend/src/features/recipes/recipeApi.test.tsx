@@ -206,13 +206,11 @@ describe('recipeApi', () => {
       const { result } = renderHook(() => useGetMyRecipesQuery(), { wrapper });
 
       await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError).toBe(true);
+        expect(result.current.isSuccess).toBe(true);
       });
 
-      if (result.current.isSuccess) {
-        expect(result.current.data?.success).toBe(true);
-        expect(result.current.data?.data).toBeDefined();
-      }
+      expect(result.current.data?.success).toBe(true);
+      expect(result.current.data?.data).toBeDefined();
     });
   });
 
