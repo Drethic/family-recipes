@@ -30,7 +30,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/register')
         .send({
           email: 'test@example.com',
@@ -152,7 +152,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app) = await request(app)
         .post('/api/auth/login')
         .send({
           email: 'test@example.com',
@@ -223,7 +223,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app) = await request(app)
         .post('/api/auth/refresh')
         .set('Cookie', ['refreshToken=test_token']);
 
@@ -250,7 +250,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app) = await request(app)
         .post('/api/auth/logout');
 
       expect(AuthController.logout).toHaveBeenCalled();
@@ -276,7 +276,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app) = await request(app)
         .get('/api/auth/me');
 
       expect(AuthController.getMe).toHaveBeenCalled();
@@ -287,7 +287,7 @@ describe('Auth Routes', () => {
         res.status(401).json({ success: false, message: 'Unauthorized' });
       });
 
-      const response = await request(app)
+      await request(app) = await request(app)
         .get('/api/auth/me');
 
       expect(authenticate).toHaveBeenCalled();

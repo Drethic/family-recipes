@@ -9,7 +9,7 @@ import { recipeApi } from '@/features/recipes/recipeApi';
 import { userApi } from '@/features/admin/userApi';
 import { profileApi } from '@/features/profile/profileApi';
 import { categoryApi } from '@/features/categories/categoryApi';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider } from '@/contexts/ThemeProvider';
 import type { RootState } from '@/app/store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RecipeService } from '../recipeService';
 import db from '../../config/database';
-import { UserRole, RecipeStatus, RecipeDifficulty } from '../../types';
+import { UserRole, RecipeStatus } from '../../types';
 
 vi.mock('../../config/database');
 

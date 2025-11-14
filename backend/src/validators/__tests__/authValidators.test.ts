@@ -1,19 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { Request } from 'express';
 import { validationResult } from 'express-validator';
 import { registerValidator, loginValidator } from '../authValidators';
 
 describe('Auth Validators', () => {
   let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let mockNext: NextFunction;
 
   beforeEach(() => {
     mockReq = {
       body: {},
     };
-    mockRes = {};
-    mockNext = vi.fn();
   });
 
   describe('registerValidator', () => {
