@@ -1,5 +1,6 @@
 import db from '../config/database';
-import { RecipeWithDetails, UserRole, RecipeStatus, Ingredient, Instruction } from '../types';
+import { RecipeWithDetails, UserRole, RecipeStatus, Ingredient, Instruction, RecipeImage } from '../types';
+import uploadService from './uploadService';
 
 export class RecipeService {
   static async getAll(
@@ -328,6 +329,13 @@ updateData.is_private = data.isPrivate;
       throw new Error('You do not have permission to delete this recipe');
     }
 
+    // Delete all associated images from storage
+    const images = await db('recipe_images').where('recipe_id', id);
+    if (images.length > 0) {
+      const imageUrls = images.map((img: RecipeImage) => img.url);
+      await uploadService.deleteMultipleImages(imageUrls);
+    }
+
     await db('recipes').where('id', id).del();
     return true;
   }
@@ -363,5 +371,163 @@ updateData.is_private = data.isPrivate;
     return Promise.all(
       recipes.map((recipe) => this.getById(recipe.id, userId, UserRole.MEMBER) as Promise<RecipeWithDetails>)
     );
+  }
+
+  // Image management methods
+  static async addImage(
+    recipeId: string,
+    url: string,
+    altText: string,
+    isPrimary: boolean = false,
+    orderIndex: number = 0,
+    instructionId: string | null = null,
+    userId: string,
+    userRole: UserRole
+  ): Promise<RecipeImage> {
+    // Check recipe ownership
+    const recipe = await db('recipes').where('id', recipeId).first();
+    if (!recipe) {
+      throw new Error('Recipe not found');
+    }
+    if (userRole !== UserRole.ADMIN && recipe.author_id !== userId) {
+      throw new Error('You do not have permission to add images to this recipe');
+    }
+
+    // If this is a final product image and isPrimary is true, unset other primary images
+    if (isPrimary && !instructionId) {
+      await db('recipe_images')
+        .where('recipe_id', recipeId)
+        .whereNull('instruction_id')
+        .update({ is_primary: false });
+    }
+
+    // Check max images limit for final product images
+    if (!instructionId) {
+      const existingImages = await db('recipe_images')
+        .where('recipe_id', recipeId)
+        .whereNull('instruction_id')
+        .count('* as count')
+        .first();
+      const count = parseInt(existingImages?.count as string) || 0;
+      const maxImages = 3; // From config, but hardcoded for now
+      if (count >= maxImages) {
+        throw new Error(`Maximum of ${maxImages} final product images allowed per recipe`);
+      }
+    }
+
+    // Check if instruction already has an image (limit 1 per instruction)
+    if (instructionId) {
+      const existingStepImage = await db('recipe_images')
+        .where('instruction_id', instructionId)
+        .first();
+      if (existingStepImage) {
+        throw new Error('This instruction step already has an image');
+      }
+    }
+
+    const [image] = await db('recipe_images')
+      .insert({
+        recipe_id: recipeId,
+        instruction_id: instructionId,
+        url,
+        alt_text: altText,
+        is_primary: isPrimary,
+        order_index: orderIndex,
+      })
+      .returning('*');
+
+    return image;
+  }
+
+  static async updateImage(
+    imageId: string,
+    data: {
+      altText?: string;
+      isPrimary?: boolean;
+      orderIndex?: number;
+    },
+    userId: string,
+    userRole: UserRole
+  ): Promise<RecipeImage | null> {
+    const image = await db('recipe_images').where('id', imageId).first();
+    if (!image) {
+      return null;
+    }
+
+    // Check recipe ownership
+    const recipe = await db('recipes').where('id', image.recipe_id).first();
+    if (!recipe) {
+      throw new Error('Recipe not found');
+    }
+    if (userRole !== UserRole.ADMIN && recipe.author_id !== userId) {
+      throw new Error('You do not have permission to update this image');
+    }
+
+    // If setting as primary, unset other primary images for this recipe
+    if (data.isPrimary && !image.instruction_id) {
+      await db('recipe_images')
+        .where('recipe_id', image.recipe_id)
+        .whereNull('instruction_id')
+        .where('id', '!=', imageId)
+        .update({ is_primary: false });
+    }
+
+    const updateData: Partial<{
+      alt_text: string;
+      is_primary: boolean;
+      order_index: number;
+    }> = {};
+    if (data.altText !== undefined) {
+      updateData.alt_text = data.altText;
+    }
+    if (data.isPrimary !== undefined) {
+      updateData.is_primary = data.isPrimary;
+    }
+    if (data.orderIndex !== undefined) {
+      updateData.order_index = data.orderIndex;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await db('recipe_images').where('id', imageId).update(updateData);
+    }
+
+    return db('recipe_images').where('id', imageId).first();
+  }
+
+  static async deleteImage(
+    imageId: string,
+    userId: string,
+    userRole: UserRole
+  ): Promise<boolean> {
+    const image = await db('recipe_images').where('id', imageId).first();
+    if (!image) {
+      return false;
+    }
+
+    // Check recipe ownership
+    const recipe = await db('recipes').where('id', image.recipe_id).first();
+    if (!recipe) {
+      throw new Error('Recipe not found');
+    }
+    if (userRole !== UserRole.ADMIN && recipe.author_id !== userId) {
+      throw new Error('You do not have permission to delete this image');
+    }
+
+    // Delete from storage
+    await uploadService.deleteImage(image.url);
+
+    // Delete from database
+    await db('recipe_images').where('id', imageId).del();
+
+    return true;
+  }
+
+  static async deleteRecipeImages(recipeId: string): Promise<void> {
+    const images = await db('recipe_images').where('recipe_id', recipeId);
+    if (images.length > 0) {
+      const imageUrls = images.map((img: RecipeImage) => img.url);
+      await uploadService.deleteMultipleImages(imageUrls);
+      await db('recipe_images').where('recipe_id', recipeId).del();
+    }
   }
 }

@@ -66,6 +66,11 @@ if (config.nodeEnv === 'development') {
   app.use(morgan('combined'));
 }
 
+// Serve static files for local storage (only if using local storage provider)
+if (config.storageProvider === 'local') {
+  app.use('/uploads', express.static(config.uploadDir));
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });

@@ -4,6 +4,7 @@ import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import { isAdmin, isMemberOrAdmin } from '../middleware/authorize';
 import { validateRequest } from '../middleware/validateRequest';
 import { createRecipeValidator, updateRecipeValidator } from '../validators/recipeValidators';
+import { uploadSingle } from '../middleware/upload';
 
 const router = Router();
 
@@ -34,5 +35,26 @@ router.delete('/:id', authenticate, isMemberOrAdmin, RecipeController.delete);
 // Admin-only routes
 router.patch('/:id/approve', authenticate, isAdmin, RecipeController.approve);
 router.patch('/:id/reject', authenticate, isAdmin, RecipeController.reject);
+
+// Image management routes
+router.post(
+  '/:id/images',
+  authenticate,
+  isMemberOrAdmin,
+  uploadSingle('image'),
+  RecipeController.uploadImage
+);
+router.patch(
+  '/images/:imageId',
+  authenticate,
+  isMemberOrAdmin,
+  RecipeController.updateImage
+);
+router.delete(
+  '/images/:imageId',
+  authenticate,
+  isMemberOrAdmin,
+  RecipeController.deleteImage
+);
 
 export default router;

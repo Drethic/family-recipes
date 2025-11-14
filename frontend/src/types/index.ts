@@ -65,6 +65,7 @@ export interface Category {
 export interface RecipeImage {
   id: string;
   recipe_id: string;
+  instruction_id: string | null;
   url: string;
   alt_text: string;
   is_primary: boolean;
