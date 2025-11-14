@@ -9,14 +9,15 @@ public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
 private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
 
 # Database Configuration
-db_name              = "recipedb"
-db_instance_class    = "db.t3.micro"
-db_allocated_storage = 20
+db_name        = "recipedb"
+db_volume_size = 20  # GB for PostgreSQL data volume
 
-# ECS Configuration
-backend_cpu    = 256
-backend_memory = 512
-backend_port   = 5000
+# EC2 ASG Configuration
+instance_type = "t4g.micro"  # Maximum cost savings
+backend_image_tag = "latest"
+
+# Database destruction control (DANGER: only for fresh dev starts)
+allow_dev_db_destruction = false  # Set to true ONLY when you want to destroy and recreate dev DB
 
 # Note: Sensitive values (passwords, secrets) should be set via:
 # - Environment variables: TF_VAR_db_username, TF_VAR_db_password, etc.

@@ -9,14 +9,15 @@ public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
 private_subnet_cidrs = ["10.1.11.0/24", "10.1.12.0/24", "10.1.13.0/24"]
 
 # Database Configuration (Production sizing)
-db_name              = "recipedb"
-db_instance_class    = "db.t3.small"  # Upgrade for production
-db_allocated_storage = 100
+db_name        = "recipedb"
+db_volume_size = 30  # GB for PostgreSQL data volume (larger for production)
 
-# ECS Configuration (Production sizing)
-backend_cpu    = 512
-backend_memory = 1024
-backend_port   = 5000
+# EC2 ASG Configuration
+instance_type = "t4g.micro"  # Cost-optimized even for production (10-20 users)
+backend_image_tag = "latest"
+
+# Production database is ALWAYS protected from destruction
+# The allow_dev_db_destruction variable has no effect on production
 
 # Note: All sensitive values MUST be set via environment variables or AWS Secrets Manager
 # Never commit production credentials to version control

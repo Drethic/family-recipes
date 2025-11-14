@@ -58,14 +58,8 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "db_instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "db_allocated_storage" {
-  description = "Allocated storage for RDS (GB)"
+variable "db_volume_size" {
+  description = "Size of EBS volume for PostgreSQL data (GB)"
   type        = number
   default     = 20
 }
@@ -110,34 +104,21 @@ variable "test_member_password" {
   default     = ""
 }
 
-# ECS Variables
-variable "backend_image" {
-  description = "Docker image for backend (will be built and pushed to ECR)"
+# EC2 ASG Variables
+variable "instance_type" {
+  description = "EC2 instance type for application (t4g.micro for maximum cost savings)"
   type        = string
-  default     = ""
+  default     = "t4g.micro"
 }
 
-variable "backend_cpu" {
-  description = "CPU units for backend task"
-  type        = number
-  default     = 256
-}
-
-variable "backend_memory" {
-  description = "Memory (MB) for backend task"
-  type        = number
-  default     = 512
-}
-
-variable "backend_port" {
-  description = "Port for backend service"
-  type        = number
-  default     = 5000
-}
-
-# SSL Certificate (optional)
-variable "certificate_arn" {
-  description = "ARN of ACM certificate for HTTPS"
+variable "backend_image_tag" {
+  description = "Docker image tag for backend (pushed to ECR)"
   type        = string
-  default     = ""
+  default     = "latest"
+}
+
+variable "allow_dev_db_destruction" {
+  description = "Allow destruction of dev database volume (DANGER: use with extreme caution!)"
+  type        = bool
+  default     = false
 }

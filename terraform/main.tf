@@ -68,21 +68,6 @@ module "secrets" {
   test_member_password = var.test_member_password
 }
 
-# RDS PostgreSQL Module
-module "rds" {
-  source = "./modules/rds"
-
-  environment            = var.environment
-  vpc_id                 = module.vpc.vpc_id
-  private_subnet_ids     = module.vpc.private_subnet_ids
-  db_name                = var.db_name
-  db_username            = var.db_username
-  db_password            = var.db_password
-  db_instance_class      = var.db_instance_class
-  db_allocated_storage   = var.db_allocated_storage
-  ecs_security_group_id  = module.ecs.ecs_security_group_id
-}
-
 # ECR Module
 module "ecr" {
   source = "./modules/ecr"
@@ -90,65 +75,34 @@ module "ecr" {
   environment = var.environment
 }
 
-# ECS Module
-module "ecs" {
-  source = "./modules/ecs"
+# EC2 Auto Scaling Group Module (replaces RDS + ECS + ALB)
+module "ec2_asg" {
+  source = "./modules/ec2-asg"
 
-  environment         = var.environment
-  vpc_id              = module.vpc.vpc_id
-  private_subnet_ids  = module.vpc.private_subnet_ids
-  public_subnet_ids   = module.vpc.public_subnet_ids
+  environment          = var.environment
+  aws_region           = var.aws_region
+  vpc_id               = module.vpc.vpc_id
+  public_subnet_ids    = module.vpc.public_subnet_ids
+  availability_zones   = var.availability_zones
 
-  # Backend configuration
-  backend_image       = var.backend_image
-  backend_cpu         = var.backend_cpu
-  backend_memory      = var.backend_memory
-  backend_port        = var.backend_port
+  # Instance configuration
+  instance_type        = var.instance_type
+  db_volume_size       = var.db_volume_size
 
-  # Secrets ARNs
+  # Database destruction control
+  allow_dev_db_destruction = var.allow_dev_db_destruction
+
+  # ECR repository
+  ecr_repository_url   = module.ecr.repository_url
+  backend_image_tag    = var.backend_image_tag
+
+  # Secrets Manager access
   secrets_manager_arns = module.secrets.secret_arns
-
-  # Database
-  db_endpoint         = module.rds.db_endpoint
-
-  # Load balancer
-  alb_target_group_arn = module.alb.target_group_arn
-  alb_security_group_id = module.alb.alb_security_group_id
-
-  # S3 bucket for uploads
-  uploads_bucket_name = module.s3.uploads_bucket_name
 }
 
-# Application Load Balancer Module
-module "alb" {
-  source = "./modules/alb"
-
-  environment        = var.environment
-  vpc_id             = module.vpc.vpc_id
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  backend_port       = var.backend_port
-
-  # SSL certificate (optional)
-  certificate_arn    = var.certificate_arn
-}
-
-# S3 Module
+# S3 Module (for uploads only, frontend uses Amplify)
 module "s3" {
   source = "./modules/s3"
 
   environment = var.environment
-}
-
-# CloudFront Module
-module "cloudfront" {
-  source = "./modules/cloudfront"
-
-  environment          = var.environment
-  frontend_bucket_id   = module.s3.frontend_bucket_id
-  frontend_bucket_arn  = module.s3.frontend_bucket_arn
-  frontend_bucket_domain_name = module.s3.frontend_bucket_domain_name
-  alb_dns_name         = module.alb.alb_dns_name
-
-  # SSL certificate (optional)
-  certificate_arn      = var.certificate_arn
 }
