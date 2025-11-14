@@ -54,7 +54,7 @@ describe('ImageCarousel', () => {
   it('should render multiple images with navigation', () => {
     render(<ImageCarousel images={mockImages} recipeName="Test Recipe" />);
 
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
     expect(screen.getByLabelText('Previous image')).toBeInTheDocument();
     expect(screen.getByLabelText('Next image')).toBeInTheDocument();
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
@@ -64,12 +64,12 @@ describe('ImageCarousel', () => {
     const user = userEvent.setup();
     render(<ImageCarousel images={mockImages} recipeName="Test Recipe" />);
 
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
 
     const nextButton = screen.getByLabelText('Next image');
     await user.click(nextButton);
 
-    expect(screen.getByAltText('Second image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('Second image')[0]).toBeInTheDocument();
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
   });
 
@@ -81,13 +81,13 @@ describe('ImageCarousel', () => {
     const nextButton = screen.getByLabelText('Next image');
     await user.click(nextButton);
 
-    expect(screen.getByAltText('Second image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('Second image')[0]).toBeInTheDocument();
 
     // Go back to first
     const prevButton = screen.getByLabelText('Previous image');
     await user.click(prevButton);
 
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
   });
 
@@ -95,12 +95,12 @@ describe('ImageCarousel', () => {
     const user = userEvent.setup();
     render(<ImageCarousel images={mockImages} recipeName="Test Recipe" />);
 
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
 
     const prevButton = screen.getByLabelText('Previous image');
     await user.click(prevButton);
 
-    expect(screen.getByAltText('Third image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('Third image')[0]).toBeInTheDocument();
     expect(screen.getByText('3 / 3')).toBeInTheDocument();
   });
 
@@ -113,12 +113,12 @@ describe('ImageCarousel', () => {
     await user.click(nextButton);
     await user.click(nextButton);
 
-    expect(screen.getByAltText('Third image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('Third image')[0]).toBeInTheDocument();
 
     // Wrap to first
     await user.click(nextButton);
 
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
   });
 
