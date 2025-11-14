@@ -130,6 +130,13 @@ export const handlers = [
     });
   }),
 
+  // IMPORTANT: More specific routes must come before parametric routes
+  // /my-recipes must be before /:id or MSW will match /:id first
+  http.get(`${API_URL}/recipes/my-recipes`, () => {
+    const userRecipes = mockRecipes.filter((r) => r.author_id === mockUser.id);
+    return HttpResponse.json({ success: true, data: userRecipes });
+  }),
+
   http.get(`${API_URL}/recipes/:id`, ({ params }) => {
     // Return error for specific ID to test error state
     if (params.id === 'not-found') {
@@ -161,11 +168,6 @@ export const handlers = [
     }
 
     return HttpResponse.json({ success: true, data: recipe });
-  }),
-
-  http.get(`${API_URL}/recipes/my-recipes`, () => {
-    const userRecipes = mockRecipes.filter((r) => r.author_id === mockUser.id);
-    return HttpResponse.json({ success: true, data: userRecipes });
   }),
 
   http.post(`${API_URL}/recipes`, async ({ request }) => {
@@ -365,7 +367,7 @@ export const handlers = [
   }),
 
   http.patch(`${API_URL}/users/:id/profile`, async ({ params, request }) => {
-    const body = await request.json() as unknown;
+    const body = await request.json() as { firstName?: string; lastName?: string; email?: string };
     const user = mockUsers.find((u) => u.id === params.id);
 
     if (!user) {
@@ -375,9 +377,17 @@ export const handlers = [
       );
     }
 
+    // Convert camelCase to snake_case for response
+    const updatedUser = {
+      ...user,
+      first_name: body.firstName !== undefined ? body.firstName : user.first_name,
+      last_name: body.lastName !== undefined ? body.lastName : user.last_name,
+      email: body.email !== undefined ? body.email : user.email,
+    };
+
     return HttpResponse.json({
       success: true,
-      data: { ...user, ...body },
+      data: updatedUser,
     });
   }),
 

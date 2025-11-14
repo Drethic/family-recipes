@@ -205,10 +205,21 @@ describe('recipeApi', () => {
 
       const { result } = renderHook(() => useGetMyRecipesQuery(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
+      // Wait for loading to finish
+      await waitFor(
+        () => {
+          expect(result.current.isLoading).toBe(false);
+        },
+        { timeout: 3000 }
+      );
 
+      // Log error details if the query failed for debugging
+      if (result.current.isError) {
+        console.error('Query error:', result.current.error);
+      }
+
+      // Check for success (if it errors, the test will fail here which is correct)
+      expect(result.current.isSuccess).toBe(true);
       expect(result.current.data?.success).toBe(true);
       expect(result.current.data?.data).toBeDefined();
     });

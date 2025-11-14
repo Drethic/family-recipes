@@ -335,12 +335,12 @@ describe('ImageUpload', () => {
   it('should handle drag enter', async () => {
     render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
-    const uploadArea = screen.getByText(/Click to upload/i).closest('div');
-    expect(uploadArea).toBeTruthy();
-    expect(uploadArea?.parentElement).toBeTruthy();
+    // Find the drop zone - it's the div with border-dashed class
+    const dropZone = screen.getByText(/Click to upload/i).closest('label')?.parentElement;
+    expect(dropZone).toBeTruthy();
+    expect(dropZone).toHaveClass('border-dashed');
 
-    const dropZone = uploadArea!.parentElement!;
-    fireEvent.dragEnter(dropZone);
+    fireEvent.dragEnter(dropZone!);
 
     await waitFor(() => {
       expect(dropZone).toHaveClass('border-blue-500');
@@ -350,13 +350,13 @@ describe('ImageUpload', () => {
   it('should handle drag leave', async () => {
     render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
-    const uploadArea = screen.getByText(/Click to upload/i).closest('div');
-    expect(uploadArea).toBeTruthy();
-    expect(uploadArea?.parentElement).toBeTruthy();
+    // Find the drop zone - it's the div with border-dashed class
+    const dropZone = screen.getByText(/Click to upload/i).closest('label')?.parentElement;
+    expect(dropZone).toBeTruthy();
+    expect(dropZone).toHaveClass('border-dashed');
 
-    const dropZone = uploadArea!.parentElement!;
-    fireEvent.dragEnter(dropZone);
-    fireEvent.dragLeave(dropZone);
+    fireEvent.dragEnter(dropZone!);
+    fireEvent.dragLeave(dropZone!);
 
     await waitFor(() => {
       expect(dropZone).toHaveClass('border-gray-300');
@@ -366,14 +366,14 @@ describe('ImageUpload', () => {
   it('should handle drop event', async () => {
     render(<ImageUpload onImagesChange={mockOnImagesChange} />);
 
-    const uploadArea = screen.getByText(/Click to upload/i).closest('div');
-    expect(uploadArea).toBeTruthy();
-    expect(uploadArea?.parentElement).toBeTruthy();
+    // Find the drop zone - it's the div with border-dashed class
+    const dropZone = screen.getByText(/Click to upload/i).closest('label')?.parentElement;
+    expect(dropZone).toBeTruthy();
+    expect(dropZone).toHaveClass('border-dashed');
 
-    const dropZone = uploadArea!.parentElement!;
     const file = new File(['image'], 'test.jpg', { type: 'image/jpeg' });
 
-    fireEvent.drop(dropZone, {
+    fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: [file],
       },

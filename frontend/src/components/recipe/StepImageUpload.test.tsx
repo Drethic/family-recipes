@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StepImageUpload } from './StepImageUpload';
 
@@ -47,7 +47,6 @@ describe('StepImageUpload', () => {
   });
 
   it('should show alert for non-image files', async () => {
-    const user = userEvent.setup();
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<StepImageUpload stepNumber={stepNumber} onImageChange={mockOnImageChange} />);
 
@@ -55,11 +54,14 @@ describe('StepImageUpload', () => {
     const input = document.getElementById(`step-${stepNumber}-image-upload`) as HTMLInputElement;
     expect(input).toBeTruthy();
 
-    await user.upload(input, file);
-
-    await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Please select an image file');
+    // Use fireEvent instead of userEvent for file input to bypass browser validation
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      writable: false,
     });
+    fireEvent.change(input);
+
+    expect(alertSpy).toHaveBeenCalledWith('Please select an image file');
     expect(mockOnImageChange).not.toHaveBeenCalled();
 
     alertSpy.mockRestore();
