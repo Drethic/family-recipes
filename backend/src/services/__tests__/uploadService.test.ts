@@ -223,4 +223,79 @@ describe('UploadService', () => {
       await expect(uploadService.deleteMultipleImages(urls)).resolves.toBeUndefined();
     });
   });
+
+  describe('ensureUploadDir', () => {
+    it('should create upload directory when it does not exist', async () => {
+      const accessError = new Error('ENOENT');
+      (fs.access as never).mockRejectedValue(accessError);
+      (fs.mkdir as never).mockResolvedValue(undefined);
+      (fs.writeFile as never).mockResolvedValue(undefined);
+
+      const mockBuffer = Buffer.from('optimized-image');
+      const mockSharp = {
+        resize: vi.fn().mockReturnThis(),
+        jpeg: vi.fn().mockReturnThis(),
+        toBuffer: vi.fn().mockResolvedValue(mockBuffer),
+      };
+      (sharp as never).mockReturnValue(mockSharp);
+
+      await uploadService.uploadImage(mockFile, 'recipes');
+
+      expect(fs.access).toHaveBeenCalled();
+      expect(fs.mkdir).toHaveBeenCalledWith('/tmp/uploads', { recursive: true });
+    });
+  });
+
+  describe('optimizeImage', () => {
+    it('should handle custom fit parameter', async () => {
+      const mockBuffer = Buffer.from('optimized-image');
+      const mockSharp = {
+        resize: vi.fn().mockReturnThis(),
+        jpeg: vi.fn().mockReturnThis(),
+        toBuffer: vi.fn().mockResolvedValue(mockBuffer),
+      };
+      (sharp as never).mockReturnValue(mockSharp);
+      (fs.mkdir as never).mockResolvedValue(undefined);
+      (fs.writeFile as never).mockResolvedValue(undefined);
+
+      await uploadService.uploadImage(mockFile, 'recipes', {
+        width: 800,
+        height: 600,
+        fit: 'contain',
+      });
+
+      expect(mockSharp.resize).toHaveBeenCalledWith({
+        width: 800,
+        height: 600,
+        fit: 'contain',
+        withoutEnlargement: true,
+      });
+    });
+
+    it('should optimize without dimensions', async () => {
+      const mockBuffer = Buffer.from('optimized-image');
+      const mockSharp = {
+        jpeg: vi.fn().mockReturnThis(),
+        toBuffer: vi.fn().mockResolvedValue(mockBuffer),
+      };
+      (sharp as never).mockReturnValue(mockSharp);
+      (fs.mkdir as never).mockResolvedValue(undefined);
+      (fs.writeFile as never).mockResolvedValue(undefined);
+
+      await uploadService.uploadImage(mockFile, 'recipes');
+
+      // resize should not be called when no dimensions provided
+      expect(mockSharp.jpeg).toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteImage with errors', () => {
+    it('should throw non-ENOENT errors', async () => {
+      const otherError = Object.assign(new Error('Permission denied'), { code: 'EACCES' });
+      (fs.unlink as never).mockRejectedValue(otherError);
+      const url = '/uploads/recipes/12345-test.jpg';
+
+      await expect(uploadService.deleteImage(url)).rejects.toThrow('Permission denied');
+    });
+  });
 });
