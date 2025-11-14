@@ -1,14 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
-import express from 'express';
 
 vi.mock('../config/database');
-vi.mock('../middleware/errorHandler');
-vi.mock('../routes/auth.routes', () => ({ default: express.Router() }));
-vi.mock('../routes/recipe.routes', () => ({ default: express.Router() }));
-vi.mock('../routes/user.routes', () => ({ default: express.Router() }));
-vi.mock('../routes/profile.routes', () => ({ default: express.Router() }));
-vi.mock('../routes/category.routes', () => ({ default: express.Router() }));
 
 import app from '../app';
 
@@ -86,9 +79,9 @@ describe('App Configuration', () => {
   });
 
   describe('Error handling', () => {
-    it.skip('should have 404 handler', async () => {
+    it('should have 404 handler', async () => {
       const response = await request(app).get('/nonexistent');
-      expect([404, 500]).toContain(response.status);
+      expect(response.status).toBe(404);
     });
 
     it('should have error handler', () => {

@@ -59,12 +59,12 @@ describe('UploadService', () => {
       const result = await uploadService.uploadImage(mockFile, 'recipes');
 
       expect(result).toMatchObject({
-        url: expect.stringContaining('http://localhost:3000/uploads/recipes/'),
+        url: expect.stringContaining('/uploads/recipes/'),
         filename: expect.stringMatching(/^\d+-[a-f0-9-]+\.jpg$/),
       });
       expect(fs.mkdir).toHaveBeenCalled();
       expect(fs.writeFile).toHaveBeenCalled();
-      expect(mockSharp.jpeg).toHaveBeenCalledWith({ quality: 85 });
+      expect(mockSharp.jpeg).toHaveBeenCalledWith({ quality: 85, progressive: true });
     });
 
     it('should resize image when dimensions provided', async () => {
@@ -80,8 +80,10 @@ describe('UploadService', () => {
 
       await uploadService.uploadImage(mockFile, 'recipes', { width: 800, height: 600 });
 
-      expect(mockSharp.resize).toHaveBeenCalledWith(800, 600, {
-        fit: 'inside',
+      expect(mockSharp.resize).toHaveBeenCalledWith({
+        width: 800,
+        height: 600,
+        fit: 'cover',
         withoutEnlargement: true,
       });
     });
@@ -101,7 +103,7 @@ describe('UploadService', () => {
       const result = await uploadService.uploadImage(pngFile, 'recipes');
 
       expect(result.filename).toMatch(/\.png$/);
-      expect(mockSharp.png).toHaveBeenCalledWith({ quality: 80 });
+      expect(mockSharp.png).toHaveBeenCalledWith({ compressionLevel: 9 });
     });
 
     it('should handle WebP images', async () => {
@@ -119,7 +121,7 @@ describe('UploadService', () => {
       const result = await uploadService.uploadImage(webpFile, 'recipes');
 
       expect(result.filename).toMatch(/\.webp$/);
-      expect(mockSharp.webp).toHaveBeenCalledWith({ quality: 80 });
+      expect(mockSharp.webp).toHaveBeenCalledWith({ quality: 85 });
     });
 
     it('should throw error for invalid file type', async () => {
@@ -153,7 +155,7 @@ describe('UploadService', () => {
   describe('deleteImage', () => {
     it('should delete image from local storage', async () => {
       (fs.unlink as never).mockResolvedValue(undefined);
-      const url = 'http://localhost:3000/uploads/recipes/12345-test.jpg';
+      const url = '/uploads/recipes/12345-test.jpg';
 
       await uploadService.deleteImage(url);
 
@@ -162,21 +164,27 @@ describe('UploadService', () => {
       );
     });
 
-    it('should handle delete errors gracefully', async () => {
-      (fs.unlink as never).mockRejectedValue(new Error('File not found'));
-      const url = 'http://localhost:3000/uploads/recipes/12345-test.jpg';
+    it('should handle ENOENT errors gracefully', async () => {
+      const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
+      (fs.unlink as never).mockRejectedValue(enoentError);
+      const url = '/uploads/recipes/12345-test.jpg';
 
-      // Should not throw
+      // Should not throw for ENOENT errors
       await expect(uploadService.deleteImage(url)).resolves.toBeUndefined();
     });
 
     it('should handle invalid URLs gracefully', async () => {
+      const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
+      (fs.unlink as never).mockRejectedValue(enoentError);
       const url = 'not-a-valid-url';
 
       await expect(uploadService.deleteImage(url)).resolves.toBeUndefined();
     });
 
     it('should handle empty URLs gracefully', async () => {
+      const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
+      (fs.unlink as never).mockRejectedValue(enoentError);
+
       await expect(uploadService.deleteImage('')).resolves.toBeUndefined();
     });
   });
@@ -185,8 +193,8 @@ describe('UploadService', () => {
     it('should delete multiple images', async () => {
       (fs.unlink as never).mockResolvedValue(undefined);
       const urls = [
-        'http://localhost:3000/uploads/recipes/1-test.jpg',
-        'http://localhost:3000/uploads/recipes/2-test.jpg',
+        '/uploads/recipes/1-test.jpg',
+        '/uploads/recipes/2-test.jpg',
       ];
 
       await uploadService.deleteMultipleImages(urls);
@@ -199,16 +207,17 @@ describe('UploadService', () => {
       expect(fs.unlink).not.toHaveBeenCalled();
     });
 
-    it('should continue deleting even if some fail', async () => {
+    it('should continue deleting even if some fail with ENOENT', async () => {
+      const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
       (fs.unlink as never)
         .mockResolvedValueOnce(undefined)
-        .mockRejectedValueOnce(new Error('Failed'))
+        .mockRejectedValueOnce(enoentError)
         .mockResolvedValueOnce(undefined);
 
       const urls = [
-        'http://localhost:3000/uploads/recipes/1-test.jpg',
-        'http://localhost:3000/uploads/recipes/2-test.jpg',
-        'http://localhost:3000/uploads/recipes/3-test.jpg',
+        '/uploads/recipes/1-test.jpg',
+        '/uploads/recipes/2-test.jpg',
+        '/uploads/recipes/3-test.jpg',
       ];
 
       await expect(uploadService.deleteMultipleImages(urls)).resolves.toBeUndefined();
