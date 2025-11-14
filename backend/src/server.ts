@@ -1,26 +1,29 @@
 import app from './app';
 import config from './config/env';
 import db from './config/database';
+import { loadConfig, setConfigInstance } from './config/loadConfig';
 
-const PORT = config.port;
+// Async server startup to load configuration from Secrets Manager
+async function startServer(): Promise<void> {
+  try {
+    // Load configuration from Secrets Manager or environment variables
+    const loadedConfig = await loadConfig();
+    setConfigInstance(loadedConfig);
 
-// Test database connection
-db.raw('SELECT 1')
-  .then(() => {
+    const PORT = loadedConfig.port;
+
+    // Test database connection
+    await db.raw('SELECT 1');
     console.log('✓ Database connection established');
-  })
-  .catch((err) => {
-    console.error('✗ Database connection failed:', err.message);
-    process.exit(1);
-  });
 
-const server = app.listen(PORT, () => {
-  console.log(`
+    // Start server
+    const server = app.listen(PORT, () => {
+      console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
 ║   🍳 Family Recipe API Server                              ║
 ║                                                            ║
-║   Environment: ${config.nodeEnv.padEnd(43)}║
+║   Environment: ${loadedConfig.nodeEnv.padEnd(43)}║
 ║   Port: ${PORT.toString().padEnd(50)}║
 ║   Database: Connected                                      ║
 ║                                                            ║
@@ -33,34 +36,52 @@ const server = app.listen(PORT, () => {
 ║   Health Check: http://localhost:${PORT}/health             ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
-  `);
-});
+      `);
+    });
 
-// Graceful shutdown
-const gracefulShutdown = async (signal: string) => {
-  console.log(`\n${signal} received. Starting graceful shutdown...`);
-
-  server.close(async () => {
-    console.log('✓ HTTP server closed');
-
-    try {
-      await db.destroy();
-      console.log('✓ Database connections closed');
-      process.exit(0);
-    } catch (err) {
-      console.error('✗ Error during shutdown:', err);
-      process.exit(1);
-    }
-  });
-
-  // Force shutdown after 10 seconds
-  setTimeout(() => {
-    console.error('✗ Forced shutdown after timeout');
+    // Export server for graceful shutdown
+    setupGracefulShutdown(server);
+  } catch (error) {
+    console.error('✗ Failed to start server:', error);
     process.exit(1);
-  }, 10000);
-};
+  }
+}
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+// Setup graceful shutdown handlers
+function setupGracefulShutdown(server: ReturnType<typeof app.listen>): void {
+  const gracefulShutdown = async (signal: string): Promise<void> => {
+    console.log(`\n${signal} received. Starting graceful shutdown...`);
 
-export default server;
+    server.close(async () => {
+      console.log('✓ HTTP server closed');
+
+      try {
+        await db.destroy();
+        console.log('✓ Database connections closed');
+        process.exit(0);
+      } catch (err) {
+        console.error('✗ Error during shutdown:', err);
+        process.exit(1);
+      }
+    });
+
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      console.error('✗ Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => {
+    gracefulShutdown('SIGTERM').catch(console.error);
+  });
+  process.on('SIGINT', () => {
+    gracefulShutdown('SIGINT').catch(console.error);
+  });
+}
+
+// Start the server
+startServer().catch((error) => {
+  console.error('✗ Fatal error during startup:', error);
+  process.exit(1);
+});
