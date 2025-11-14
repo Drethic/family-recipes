@@ -257,6 +257,59 @@ export const handlers = [
     });
   }),
 
+  // Recipe Image endpoints
+  http.post(`${API_URL}/recipes/:id/images`, async ({ params, request }) => {
+    const recipe = mockRecipes.find((r) => r.id === params.id);
+
+    if (!recipe) {
+      return HttpResponse.json(
+        { success: false, error: 'Recipe not found' },
+        { status: 404 }
+      );
+    }
+
+    const formData = await request.formData();
+    const altText = formData.get('altText') as string;
+    const isPrimary = formData.get('isPrimary') === 'true';
+    const orderIndex = parseInt(formData.get('orderIndex') as string) || 0;
+    const instructionId = formData.get('instructionId') as string | null;
+
+    const newImage = {
+      id: `img-${Date.now()}`,
+      recipe_id: params.id as string,
+      instruction_id: instructionId || null,
+      url: `/uploads/recipes/mock-${Date.now()}.jpg`,
+      alt_text: altText || 'Recipe image',
+      is_primary: isPrimary,
+      order_index: orderIndex,
+    };
+
+    return HttpResponse.json(
+      { success: true, data: newImage },
+      { status: 201 }
+    );
+  }),
+
+  http.patch(`${API_URL}/recipes/images/:imageId`, async ({ params, request }) => {
+    const body = await request.json() as { altText?: string; isPrimary?: boolean; orderIndex?: number };
+
+    const updatedImage = {
+      id: params.imageId as string,
+      recipe_id: '1',
+      instruction_id: null,
+      url: '/uploads/recipes/mock-image.jpg',
+      alt_text: body.altText || 'Updated image',
+      is_primary: body.isPrimary ?? false,
+      order_index: body.orderIndex ?? 0,
+    };
+
+    return HttpResponse.json({ success: true, data: updatedImage });
+  }),
+
+  http.delete(`${API_URL}/recipes/images/:imageId`, () => {
+    return HttpResponse.json({ success: true, data: null }, { status: 204 });
+  }),
+
 
   http.get(`${API_URL}/users`, ({ request }) => {
     const url = new URL(request.url);

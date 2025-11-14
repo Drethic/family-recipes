@@ -7,6 +7,7 @@ import type {
   UpdateRecipeRequest,
   ApiResponse,
   RecipeStatus,
+  RecipeImage,
 } from '@/types';
 
 export const recipeApi = createApi({
@@ -112,6 +113,69 @@ export const recipeApi = createApi({
         { type: 'Recipe', id: 'LIST' },
       ],
     }),
+    uploadRecipeImage: builder.mutation<
+      ApiResponse<RecipeImage>,
+      {
+        recipeId: string;
+        file: File;
+        altText?: string;
+        isPrimary?: boolean;
+        orderIndex?: number;
+        instructionId?: string | null;
+      }
+    >({
+      query: ({ recipeId, file, altText, isPrimary, orderIndex, instructionId }) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        if (altText) {
+          formData.append('altText', altText);
+        }
+        if (isPrimary !== undefined) {
+          formData.append('isPrimary', isPrimary.toString());
+        }
+        if (orderIndex !== undefined) {
+          formData.append('orderIndex', orderIndex.toString());
+        }
+        if (instructionId) {
+          formData.append('instructionId', instructionId);
+        }
+        return {
+          url: `/${recipeId}/images`,
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: (_result, _error, { recipeId }) => [
+        { type: 'Recipe', id: recipeId },
+        'MyRecipes',
+      ],
+    }),
+    updateRecipeImage: builder.mutation<
+      ApiResponse<RecipeImage>,
+      {
+        imageId: string;
+        altText?: string;
+        isPrimary?: boolean;
+        orderIndex?: number;
+      }
+    >({
+      query: ({ imageId, ...data }) => ({
+        url: `/images/${imageId}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['MyRecipes'],
+    }),
+    deleteRecipeImage: builder.mutation<void, { imageId: string; recipeId: string }>({
+      query: ({ imageId }) => ({
+        url: `/images/${imageId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { recipeId }) => [
+        { type: 'Recipe', id: recipeId },
+        'MyRecipes',
+      ],
+    }),
   }),
 });
 
@@ -124,4 +188,7 @@ export const {
   useDeleteRecipeMutation,
   useApproveRecipeMutation,
   useRejectRecipeMutation,
+  useUploadRecipeImageMutation,
+  useUpdateRecipeImageMutation,
+  useDeleteRecipeImageMutation,
 } = recipeApi;
