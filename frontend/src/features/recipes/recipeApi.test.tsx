@@ -12,6 +12,9 @@ import {
   useDeleteRecipeMutation,
   useApproveRecipeMutation,
   useRejectRecipeMutation,
+  useUploadRecipeImageMutation,
+  useUpdateRecipeImageMutation,
+  useDeleteRecipeImageMutation,
 } from './recipeApi';
 
 describe('recipeApi', () => {
@@ -45,6 +48,18 @@ describe('recipeApi', () => {
 
   it('defines rejectRecipe endpoint', () => {
     expect(recipeApi.endpoints.rejectRecipe).toBeDefined();
+  });
+
+  it('defines uploadRecipeImage endpoint', () => {
+    expect(recipeApi.endpoints.uploadRecipeImage).toBeDefined();
+  });
+
+  it('defines updateRecipeImage endpoint', () => {
+    expect(recipeApi.endpoints.updateRecipeImage).toBeDefined();
+  });
+
+  it('defines deleteRecipeImage endpoint', () => {
+    expect(recipeApi.endpoints.deleteRecipeImage).toBeDefined();
   });
 
   it('exports useGetRecipesQuery hook', () => {
@@ -85,6 +100,21 @@ describe('recipeApi', () => {
   it('exports useRejectRecipeMutation hook', () => {
     expect(useRejectRecipeMutation).toBeDefined();
     expect(typeof useRejectRecipeMutation).toBe('function');
+  });
+
+  it('exports useUploadRecipeImageMutation hook', () => {
+    expect(useUploadRecipeImageMutation).toBeDefined();
+    expect(typeof useUploadRecipeImageMutation).toBe('function');
+  });
+
+  it('exports useUpdateRecipeImageMutation hook', () => {
+    expect(useUpdateRecipeImageMutation).toBeDefined();
+    expect(typeof useUpdateRecipeImageMutation).toBe('function');
+  });
+
+  it('exports useDeleteRecipeImageMutation hook', () => {
+    expect(useDeleteRecipeImageMutation).toBeDefined();
+    expect(typeof useDeleteRecipeImageMutation).toBe('function');
   });
 
   it('has correct reducer path', () => {
@@ -273,6 +303,179 @@ describe('recipeApi', () => {
 
       await waitFor(() => {
         expect(result.current[1].isSuccess).toBe(true);
+      });
+    });
+  });
+
+  describe('useUploadRecipeImageMutation', () => {
+    it('uploads recipe image successfully', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUploadRecipeImageMutation(), { wrapper });
+
+      const file = new File(['image'], 'test.jpg', { type: 'image/jpeg' });
+      const payload = {
+        recipeId: '1',
+        file,
+        altText: 'Test image',
+        isPrimary: true,
+        orderIndex: 0,
+      };
+
+      await act(async () => {
+        await result.current[0](payload).unwrap();
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isSuccess).toBe(true);
+      });
+    });
+
+    it('uploads step image with instruction ID', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUploadRecipeImageMutation(), { wrapper });
+
+      const file = new File(['image'], 'step.jpg', { type: 'image/jpeg' });
+      const payload = {
+        recipeId: '1',
+        file,
+        altText: 'Step image',
+        instructionId: 'step-1',
+      };
+
+      await act(async () => {
+        await result.current[0](payload).unwrap();
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isSuccess).toBe(true);
+      });
+    });
+
+    it('handles upload errors', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUploadRecipeImageMutation(), { wrapper });
+
+      const file = new File(['image'], 'error.jpg', { type: 'image/jpeg' });
+      const payload = {
+        recipeId: 'ERROR',
+        file,
+        altText: 'Error image',
+      };
+
+      await act(async () => {
+        try {
+          await result.current[0](payload).unwrap();
+        } catch (error) {
+          // Expected error
+        }
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isError).toBe(true);
+      });
+    });
+  });
+
+  describe('useUpdateRecipeImageMutation', () => {
+    it('updates recipe image successfully', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUpdateRecipeImageMutation(), { wrapper });
+
+      const payload = {
+        imageId: 'image-1',
+        altText: 'Updated alt text',
+        isPrimary: true,
+        orderIndex: 1,
+      };
+
+      await act(async () => {
+        await result.current[0](payload).unwrap();
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isSuccess).toBe(true);
+      });
+    });
+
+    it('handles update errors', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUpdateRecipeImageMutation(), { wrapper });
+
+      const payload = {
+        imageId: 'ERROR',
+        altText: 'Error',
+      };
+
+      await act(async () => {
+        try {
+          await result.current[0](payload).unwrap();
+        } catch (error) {
+          // Expected error
+        }
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isError).toBe(true);
+      });
+    });
+  });
+
+  describe('useDeleteRecipeImageMutation', () => {
+    it('deletes recipe image successfully', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useDeleteRecipeImageMutation(), { wrapper });
+
+      await act(async () => {
+        await result.current[0]('image-1').unwrap();
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isSuccess).toBe(true);
+      });
+    });
+
+    it('handles delete errors', async () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useDeleteRecipeImageMutation(), { wrapper });
+
+      await act(async () => {
+        try {
+          await result.current[0]('ERROR').unwrap();
+        } catch (error) {
+          // Expected error
+        }
+      });
+
+      await waitFor(() => {
+        expect(result.current[1].isError).toBe(true);
       });
     });
   });
