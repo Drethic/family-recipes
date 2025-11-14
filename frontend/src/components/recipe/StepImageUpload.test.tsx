@@ -52,14 +52,11 @@ describe('StepImageUpload', () => {
     render(<StepImageUpload stepNumber={stepNumber} onImageChange={mockOnImageChange} />);
 
     const file = new File(['document'], 'document.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('Add image (optional)');
+    const input = document.getElementById(`step-${stepNumber}-image-upload`) as HTMLInputElement;
 
     await user.upload(input, file);
 
-    await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Please select an image file');
-    });
-
+    expect(alertSpy).toHaveBeenCalledWith('Please select an image file');
     expect(mockOnImageChange).not.toHaveBeenCalled();
     alertSpy.mockRestore();
   });
