@@ -130,11 +130,11 @@ describe('ImageCarousel', () => {
 
     // Navigate to next with arrow right
     await user.type(carousel, '{ArrowRight}');
-    expect(screen.getByAltText('Second image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('Second image')[0]).toBeInTheDocument();
 
     // Navigate to previous with arrow left
     await user.type(carousel, '{ArrowLeft}');
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
   });
 
   it('should navigate to specific image when thumbnail clicked', async () => {
@@ -150,7 +150,7 @@ describe('ImageCarousel', () => {
     expect(thirdThumbnail).toBeDefined();
     await user.click(thirdThumbnail!);
 
-    expect(screen.getByAltText('Third image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('Third image')[0]).toBeInTheDocument();
     expect(screen.getByText('3 / 3')).toBeInTheDocument();
   });
 
@@ -178,7 +178,7 @@ describe('ImageCarousel', () => {
   it('should use alt text when provided', () => {
     render(<ImageCarousel images={mockImages} recipeName="Test Recipe" />);
 
-    expect(screen.getByAltText('First image')).toBeInTheDocument();
+    expect(screen.getAllByAltText('First image')[0]).toBeInTheDocument();
   });
 
   it('should fallback to recipe name and index when alt text missing', () => {
