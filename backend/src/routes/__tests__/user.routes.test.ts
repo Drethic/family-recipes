@@ -8,7 +8,7 @@ describe('User Routes', () => {
     it('should have GET / route', () => {
       const route = routes.find(l => l.route?.path === '/');
       expect(route).toBeDefined();
-      expect(route?.route.methods.get).toBe(true);
+      expect((route?.route as any)?.methods.get).toBe(true);
     });
 
     it('should have GET /:id route', () => {
@@ -19,7 +19,7 @@ describe('User Routes', () => {
     it('should have PATCH /:id/role route', () => {
       const route = routes.find(l => l.route?.path === '/:id/role');
       expect(route).toBeDefined();
-      expect(route?.route.methods.patch).toBe(true);
+      expect((route?.route as any)?.methods.patch).toBe(true);
     });
 
     it('should have PATCH /:id/profile route', () => {
@@ -30,7 +30,7 @@ describe('User Routes', () => {
     it('should have POST /:id/approve route', () => {
       const route = routes.find(l => l.route?.path === '/:id/approve');
       expect(route).toBeDefined();
-      expect(route?.route.methods.post).toBe(true);
+      expect((route?.route as any)?.methods.post).toBe(true);
     });
 
     it('should have POST /:id/reject route', () => {
@@ -39,7 +39,7 @@ describe('User Routes', () => {
     });
 
     it('should have DELETE /:id route', () => {
-      const route = routes.find(l => l.route?.path === '/:id' && l.route?.methods.delete);
+      const route = routes.find(l => l.route?.path === '/:id' && l(route as any)?.methods.delete);
       expect(route).toBeDefined();
     });
 

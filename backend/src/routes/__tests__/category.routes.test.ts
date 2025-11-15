@@ -16,17 +16,17 @@ describe('Category Routes', () => {
     });
 
     it('should have POST / route', () => {
-      const route = routes.find(l => l.route?.path === '/' && l.route?.methods.post);
+      const route = routes.find(l => l.route?.path === '/' && l(route as any)?.methods.post);
       expect(route).toBeDefined();
     });
 
     it('should have PATCH /:id route', () => {
-      const route = routes.find(l => l.route?.path === '/:id' && l.route?.methods.patch);
+      const route = routes.find(l => l.route?.path === '/:id' && l(route as any)?.methods.patch);
       expect(route).toBeDefined();
     });
 
     it('should have DELETE /:id route', () => {
-      const route = routes.find(l => l.route?.path === '/:id' && l.route?.methods.delete);
+      const route = routes.find(l => l.route?.path === '/:id' && l(route as any)?.methods.delete);
       expect(route).toBeDefined();
     });
 

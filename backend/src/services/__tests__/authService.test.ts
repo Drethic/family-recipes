@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { AuthService } from '../authService';
 import db from '../../config/database';
 import config from '../../config/env';
-import { UserRole } from '../../types';
+import { UserRole, ThemePreference } from '../../types';
 
 vi.mock('../../config/database');
 vi.mock('bcrypt');
@@ -79,6 +79,7 @@ describe('AuthService', () => {
         first_name: 'John',
         last_name: 'Doe',
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -108,6 +109,7 @@ describe('AuthService', () => {
         first_name: 'Admin',
         last_name: 'User',
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -130,6 +132,7 @@ describe('AuthService', () => {
         first_name: 'John',
         last_name: 'Doe',
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -159,6 +162,7 @@ describe('AuthService', () => {
         first_name: 'John',
         last_name: 'Doe',
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -327,6 +331,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password_hash: 'hashed',
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
       };
 
       const mockDbChain = {
@@ -361,6 +366,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password_hash: 'hashed',
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
       };
 
       const mockDbChain = {
@@ -441,6 +447,7 @@ describe('AuthService', () => {
         last_name: 'Doe',
         role: UserRole.MEMBER,
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -461,6 +468,7 @@ describe('AuthService', () => {
         last_name: 'Doe',
         role: UserRole.ADMIN,
         is_approved: true,
+      theme_preference: ThemePreference.SYSTEM,
         created_at: new Date(),
         updated_at: new Date(),
       };
