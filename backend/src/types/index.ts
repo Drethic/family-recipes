@@ -32,6 +32,9 @@ export interface User {
   first_name: string;
   last_name: string;
   role: UserRole;
+  is_approved: boolean;
+  approved_at?: Date | null;
+  approved_by_id?: string | null;
   theme_preference: ThemePreference;
   created_at: Date;
   updated_at: Date;

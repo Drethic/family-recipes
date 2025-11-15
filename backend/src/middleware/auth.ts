@@ -24,7 +24,7 @@ export const authenticate = (
       req.user = decoded;
       next();
     } catch (_error) {
-      if (error instanceof jwt.TokenExpiredError) {
+      if (_error instanceof jwt.TokenExpiredError) {
         sendUnauthorized(res, 'Token expired');
         return;
       }

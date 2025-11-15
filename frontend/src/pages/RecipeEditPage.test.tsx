@@ -396,7 +396,8 @@ describe('RecipeEditPage', () => {
 
   it('navigates back when cancel button is clicked', async () => {
     const navigateMock = vi.fn();
-    vi.mocked(await import('react-router-dom')).useNavigate = () => navigateMock;
+    const routerDom = vi.mocked(await import('react-router-dom'));
+    routerDom.useNavigate = vi.fn(() => navigateMock as ReturnType<typeof routerDom.useNavigate>);
 
     const user = userEvent.setup();
     render(<RecipeEditPage />);

@@ -134,7 +134,6 @@ describe('AdminDashboard', () => {
   it('displays pending recipe with author information', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -145,7 +144,6 @@ describe('AdminDashboard', () => {
   it('renders view button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -159,7 +157,6 @@ describe('AdminDashboard', () => {
   it('renders edit button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -173,7 +170,6 @@ describe('AdminDashboard', () => {
   it('renders approve button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -187,7 +183,6 @@ describe('AdminDashboard', () => {
   it('renders reject button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -201,7 +196,6 @@ describe('AdminDashboard', () => {
   it('View button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -215,7 +209,6 @@ describe('AdminDashboard', () => {
   it('Edit button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -229,7 +222,6 @@ describe('AdminDashboard', () => {
   it('Approve button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -243,7 +235,6 @@ describe('AdminDashboard', () => {
   it('Reject button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -258,7 +249,6 @@ describe('AdminDashboard', () => {
     const user = userEvent.setup();
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -280,7 +270,6 @@ describe('AdminDashboard', () => {
     const user = userEvent.setup();
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -302,7 +291,6 @@ describe('AdminDashboard', () => {
     const user = userEvent.setup();
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -319,7 +307,6 @@ describe('AdminDashboard', () => {
     const user = userEvent.setup();
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -351,12 +338,12 @@ describe('AdminDashboard', () => {
             },
           });
         }
+        return HttpResponse.json({ success: true, data: { recipes: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } } });
       })
     );
 
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     // When recipes is null, the fallback || [] creates an empty array
