@@ -101,6 +101,50 @@ rm -rf .claude/temp/*
 2. Is this project source code? → Use appropriate `src/` directory
 3. Is this documentation? → Use `.claude/` or project root
 
+### 6. Pre-Commit Hooks - MANDATORY ENFORCEMENT
+**CRITICAL**: This project uses Husky pre-commit hooks to enforce code quality. **ALL** commits must pass these checks.
+
+**Pre-Commit Checks (Automatic on Every Commit):**
+- ✅ Frontend: ESLint (0 errors, 0 warnings)
+- ✅ Frontend: TypeScript type-check (0 errors)
+- ✅ Frontend: Unit tests (514 tests must pass)
+- ✅ Backend: ESLint (0 errors, 0 warnings)
+- ✅ Backend: TypeScript type-check (0 errors)
+- ✅ Backend: Unit tests (820 tests must pass)
+
+**STRICTLY FORBIDDEN:**
+```bash
+# ❌ NEVER USE THIS - ABSOLUTELY PROHIBITED
+git commit --no-verify
+
+# ❌ NEVER USE THIS - ABSOLUTELY PROHIBITED
+git commit -n
+```
+
+**Why `--no-verify` is Prohibited:**
+- Bypasses critical quality checks
+- Can introduce breaking changes to the codebase
+- Violates the project's quality standards
+- Defeats the purpose of automated testing
+- Can cause CI/CD pipeline failures
+
+**If Pre-Commit Checks Fail:**
+1. **Fix the errors** - Do not bypass them
+2. Run checks manually: `npm run lint`, `npm run type-check`, `npm test`
+3. Ensure all tests pass before committing
+4. If stuck, ask for help - never bypass the hooks
+
+**Hook Installation:**
+- Hooks are automatically installed via `npm install` (prepare script)
+- Located in `.husky/pre-commit`
+- See `.husky/README.md` for documentation
+
+**Exception Handling:**
+There are **NO EXCEPTIONS** to this rule. If you believe there is a legitimate reason to bypass pre-commit hooks, you must:
+1. Document the reason thoroughly
+2. Get explicit approval from the project owner
+3. Fix the bypassed issues in the immediate next commit
+
 ## Current Status
 
 ### Frontend - ✅ COMPLETE (All Files 90%+)

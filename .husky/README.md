@@ -33,14 +33,33 @@ npm install
 
 This triggers the `prepare` script which installs Husky hooks.
 
-## Bypassing Hooks (Not Recommended)
+## ⚠️ BYPASSING HOOKS IS PROHIBITED
 
-In emergency situations, you can bypass the pre-commit hook with:
+**DO NOT USE `--no-verify` OR `-n` FLAGS**
+
+The following commands are **STRICTLY FORBIDDEN**:
 ```bash
+# ❌ NEVER USE - PROHIBITED
 git commit --no-verify
+
+# ❌ NEVER USE - PROHIBITED
+git commit -n
 ```
 
-**⚠️ Warning:** Only use this when absolutely necessary. All commits should pass the checks.
+**Why This is Prohibited:**
+- Bypasses critical quality checks
+- Can introduce breaking changes
+- Violates project quality standards
+- Defeats the purpose of automated testing
+- May cause CI/CD failures
+
+**If Checks Fail:**
+1. **Fix the errors** - Do not bypass
+2. Run checks manually to debug
+3. Ensure all tests pass
+4. Ask for help if needed
+
+See `CLAUDE.md` section 6 for full policy.
 
 ## Testing the Hook
 
