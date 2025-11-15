@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'migrations', 'seeds', 'knexfile.js'] },
+  { ignores: ['dist', 'coverage', 'migrations', 'seeds', 'knexfile.js'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.ts'],

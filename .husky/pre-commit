@@ -1,0 +1,77 @@
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Track if any checks fail
+FAILED=0
+
+# Frontend checks
+echo "📦 Frontend: Running ESLint..."
+cd frontend
+if ! npm run lint; then
+  echo "❌ Frontend: ESLint failed"
+  FAILED=1
+else
+  echo "✅ Frontend: ESLint passed"
+fi
+echo ""
+
+echo "🔷 Frontend: Running TypeScript type check..."
+if ! npm run type-check; then
+  echo "❌ Frontend: Type check failed"
+  FAILED=1
+else
+  echo "✅ Frontend: Type check passed"
+fi
+echo ""
+
+echo "🧪 Frontend: Running tests..."
+if ! npm test; then
+  echo "❌ Frontend: Tests failed"
+  FAILED=1
+else
+  echo "✅ Frontend: Tests passed"
+fi
+echo ""
+
+# Backend checks
+cd ../backend
+echo "📦 Backend: Running ESLint..."
+if ! npm run lint; then
+  echo "❌ Backend: ESLint failed"
+  FAILED=1
+else
+  echo "✅ Backend: ESLint passed"
+fi
+echo ""
+
+echo "🔷 Backend: Running TypeScript type check..."
+if ! npm run type-check; then
+  echo "❌ Backend: Type check failed"
+  FAILED=1
+else
+  echo "✅ Backend: Type check passed"
+fi
+echo ""
+
+echo "🧪 Backend: Running tests..."
+if ! npm test; then
+  echo "❌ Backend: Tests failed"
+  FAILED=1
+else
+  echo "✅ Backend: Tests passed"
+fi
+echo ""
+
+# Return to root
+cd ..
+
+# Check if any step failed
+if [ $FAILED -eq 1 ]; then
+  echo "❌ Pre-commit checks failed. Please fix the issues before committing."
+  echo ""
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+echo ""
+exit 0

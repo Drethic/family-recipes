@@ -165,6 +165,55 @@ See `.env.example` files in each directory for required environment variables.
 
 API endpoints are documented in [backend/README.md](backend/README.md)
 
+## Development Workflow
+
+### Pre-Commit Hooks
+
+This project uses [Husky](https://typicode.github.io/husky/) to enforce code quality before commits.
+
+**Automatic Checks on Every Commit:**
+- ✅ ESLint (frontend & backend)
+- ✅ TypeScript type checking (frontend & backend)
+- ✅ Unit tests (514 frontend + 820 backend tests)
+
+**First-time setup:**
+```bash
+npm install  # Installs husky hooks automatically
+```
+
+**All checks must pass before commit is allowed.** This ensures:
+- No type errors reach the codebase
+- No linting issues are committed
+- All tests remain passing
+- Code quality standards are maintained
+
+See [.husky/README.md](.husky/README.md) for more details.
+
+### Running Tests Manually
+
+**Frontend:**
+```bash
+cd frontend
+npm run lint           # ESLint
+npm run type-check     # TypeScript
+npm test               # Unit tests
+npm run test:coverage  # Coverage report
+```
+
+**Backend:**
+```bash
+cd backend
+npm run lint           # ESLint
+npm run type-check     # TypeScript
+npm test               # Unit tests
+npm run test:coverage  # Coverage report
+```
+
+**E2E Tests:**
+```bash
+npm run test:e2e       # Playwright tests (requires Docker Compose)
+```
+
 ## Contributing
 
 1. Create a feature branch
