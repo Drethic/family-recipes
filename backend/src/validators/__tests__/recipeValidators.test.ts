@@ -765,7 +765,7 @@ describe('Recipe Validators', () => {
 
       it('should pass for missing categoryIds (optional)', async () => {
         const data = getValidRecipeData();
-        delete (data as Partial<typeof data>).categoryIds;
+        delete (data as Record<string, unknown>).categoryIds;
         mockReq.body = data;
 
         for (const validator of createRecipeValidator) {

@@ -5,6 +5,7 @@ import { UserRole, ThemePreference } from '../types';
 export const mockUser = async (overrides: Record<string, unknown> = {}) => {
   const password = overrides.password || 'password123';
   const passwordHash = await bcrypt.hash(password as string, 10);
+  const finalPasswordHash = (overrides.password_hash as string) || passwordHash;
 
   return {
     id: faker.string.uuid(),
@@ -14,12 +15,10 @@ export const mockUser = async (overrides: Record<string, unknown> = {}) => {
     role: UserRole.MEMBER,
     is_approved: true,
     theme_preference: ThemePreference.SYSTEM,
-    password_hash: passwordHash,
+    password_hash: finalPasswordHash,
     created_at: new Date(),
     updated_at: new Date(),
     ...overrides,
-    // Don't override password_hash if explicitly provided
-    password_hash: (overrides.password_hash as string) || passwordHash,
   };
 };
 

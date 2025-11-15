@@ -34,7 +34,9 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/register', () => {
     it('should call register controller', async () => {
-      vi.mocked(AuthController.register).mockImplementation((req, res) => {
+      vi.mocked(AuthController.register).mockImplementation((_, res) => {
+        
+         // Not used in mock
         res.status(201).json({ success: true });
         return Promise.resolve();
       });
@@ -156,7 +158,8 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/login', () => {
     it('should call login controller', async () => {
-      vi.mocked(AuthController.login).mockImplementation((req, res) => {
+      vi.mocked(AuthController.login).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -227,7 +230,8 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/refresh', () => {
     it('should call refresh controller', async () => {
-      vi.mocked(AuthController.refresh).mockImplementation((req, res) => {
+      vi.mocked(AuthController.refresh).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -240,7 +244,8 @@ describe('Auth Routes', () => {
     });
 
     it('should not require authentication', async () => {
-      vi.mocked(AuthController.refresh).mockImplementation((req, res) => {
+      vi.mocked(AuthController.refresh).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -254,7 +259,8 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should call logout controller', async () => {
-      vi.mocked(AuthController.logout).mockImplementation((req, res) => {
+      vi.mocked(AuthController.logout).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -266,7 +272,8 @@ describe('Auth Routes', () => {
     });
 
     it('should not require authentication', async () => {
-      vi.mocked(AuthController.logout).mockImplementation((req, res) => {
+      vi.mocked(AuthController.logout).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -280,7 +287,8 @@ describe('Auth Routes', () => {
 
   describe('GET /api/auth/me', () => {
     it('should call getMe controller', async () => {
-      vi.mocked(AuthController.getMe).mockImplementation((req, res) => {
+      vi.mocked(AuthController.getMe).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -292,7 +300,7 @@ describe('Auth Routes', () => {
     });
 
     it('should require authentication', async () => {
-      vi.mocked(authenticate).mockImplementationOnce((req, res) => {
+      vi.mocked(authenticate).mockImplementationOnce((_, res) => {
         res.status(401).json({ success: false, message: 'Unauthorized' });
       });
 

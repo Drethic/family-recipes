@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../app', () => ({
   default: {
-    listen: vi.fn((_port, callback) => {
+    listen: vi.fn((_: number, callback: () => void) => {
       callback();
-      return { close: vi.fn((cb) => cb && cb()) };
+      return { close: vi.fn((cb?: () => void) => cb && cb()) };
     }),
   },
 }));

@@ -4,7 +4,7 @@ import db from '../config/database';
 import { sendSuccess, sendError, sendCreated, sendNotFound, sendNoContent } from '../utils/response';
 
 export class CategoryController {
-  static async getAll(req: AuthRequest, res: Response): Promise<void> {
+  static async getAll(_: AuthRequest, res: Response): Promise<void> {
     try {
       const categories = await db('categories').select('*').orderBy('name', 'asc');
 

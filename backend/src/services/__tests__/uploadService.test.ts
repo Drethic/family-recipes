@@ -22,11 +22,14 @@ vi.mock('../../config/env', () => ({
   },
 }));
 
-// Import after mocks are set up
-const module = await import('../uploadService');
-const uploadService = module.default;
-
 describe('UploadService', () => {
+  let uploadService: typeof import('../uploadService').default;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const module = await import('../uploadService');
+    uploadService = module.default;
+  });
   const mockFile: Express.Multer.File = {
     fieldname: 'image',
     originalname: 'test.jpg',
@@ -52,9 +55,9 @@ describe('UploadService', () => {
         jpeg: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       const result = await uploadService.uploadImage(mockFile, 'recipes');
 
@@ -74,9 +77,9 @@ describe('UploadService', () => {
         jpeg: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       await uploadService.uploadImage(mockFile, 'recipes', { width: 800, height: 600 });
 
@@ -96,9 +99,9 @@ describe('UploadService', () => {
         png: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       const result = await uploadService.uploadImage(pngFile, 'recipes');
 
@@ -114,9 +117,9 @@ describe('UploadService', () => {
         webp: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       const result = await uploadService.uploadImage(webpFile, 'recipes');
 
@@ -146,7 +149,7 @@ describe('UploadService', () => {
         jpeg: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockRejectedValue(new Error('Sharp failed')),
       };
-      (sharp as never).mockReturnValue(mockSharp);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
 
       await expect(uploadService.uploadImage(mockFile, 'recipes')).rejects.toThrow();
     });
@@ -154,7 +157,7 @@ describe('UploadService', () => {
 
   describe('deleteImage', () => {
     it('should delete image from local storage', async () => {
-      (fs.unlink as never).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
       const url = '/uploads/recipes/12345-test.jpg';
 
       await uploadService.deleteImage(url);
@@ -166,7 +169,7 @@ describe('UploadService', () => {
 
     it('should handle ENOENT errors gracefully', async () => {
       const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
-      (fs.unlink as never).mockRejectedValue(enoentError);
+      vi.mocked(fs.unlink).mockRejectedValue(enoentError);
       const url = '/uploads/recipes/12345-test.jpg';
 
       // Should not throw for ENOENT errors
@@ -175,7 +178,7 @@ describe('UploadService', () => {
 
     it('should handle invalid URLs gracefully', async () => {
       const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
-      (fs.unlink as never).mockRejectedValue(enoentError);
+      vi.mocked(fs.unlink).mockRejectedValue(enoentError);
       const url = 'not-a-valid-url';
 
       await expect(uploadService.deleteImage(url)).resolves.toBeUndefined();
@@ -183,7 +186,7 @@ describe('UploadService', () => {
 
     it('should handle empty URLs gracefully', async () => {
       const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
-      (fs.unlink as never).mockRejectedValue(enoentError);
+      vi.mocked(fs.unlink).mockRejectedValue(enoentError);
 
       await expect(uploadService.deleteImage('')).resolves.toBeUndefined();
     });
@@ -191,7 +194,7 @@ describe('UploadService', () => {
 
   describe('deleteMultipleImages', () => {
     it('should delete multiple images', async () => {
-      (fs.unlink as never).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
       const urls = [
         '/uploads/recipes/1-test.jpg',
         '/uploads/recipes/2-test.jpg',
@@ -209,7 +212,7 @@ describe('UploadService', () => {
 
     it('should continue deleting even if some fail with ENOENT', async () => {
       const enoentError = Object.assign(new Error('File not found'), { code: 'ENOENT' });
-      (fs.unlink as never)
+      vi.mocked(fs.unlink)
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(enoentError)
         .mockResolvedValueOnce(undefined);
@@ -227,9 +230,9 @@ describe('UploadService', () => {
   describe('ensureUploadDir', () => {
     it('should create upload directory when it does not exist', async () => {
       const accessError = new Error('ENOENT');
-      (fs.access as never).mockRejectedValue(accessError);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(fs.access).mockRejectedValue(accessError);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       const mockBuffer = Buffer.from('optimized-image');
       const mockSharp = {
@@ -237,7 +240,7 @@ describe('UploadService', () => {
         jpeg: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
 
       await uploadService.uploadImage(mockFile, 'recipes');
 
@@ -254,9 +257,9 @@ describe('UploadService', () => {
         jpeg: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       await uploadService.uploadImage(mockFile, 'recipes', {
         width: 800,
@@ -278,9 +281,9 @@ describe('UploadService', () => {
         jpeg: vi.fn().mockReturnThis(),
         toBuffer: vi.fn().mockResolvedValue(mockBuffer),
       };
-      (sharp as never).mockReturnValue(mockSharp);
-      (fs.mkdir as never).mockResolvedValue(undefined);
-      (fs.writeFile as never).mockResolvedValue(undefined);
+      vi.mocked(sharp).mockReturnValue(mockSharp as never);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       await uploadService.uploadImage(mockFile, 'recipes');
 
@@ -292,7 +295,7 @@ describe('UploadService', () => {
   describe('deleteImage with errors', () => {
     it('should throw non-ENOENT errors', async () => {
       const otherError = Object.assign(new Error('Permission denied'), { code: 'EACCES' });
-      (fs.unlink as never).mockRejectedValue(otherError);
+      vi.mocked(fs.unlink).mockRejectedValue(otherError);
       const url = '/uploads/recipes/12345-test.jpg';
 
       await expect(uploadService.deleteImage(url)).rejects.toThrow('Permission denied');

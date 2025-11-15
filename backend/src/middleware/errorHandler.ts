@@ -8,7 +8,7 @@ interface ErrorWithStatus extends Error {
 
 export const errorHandler = (
   err: unknown,
-  req: Request,
+  _: Request,
   res: Response,
   next: NextFunction
 ): void => {

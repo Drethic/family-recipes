@@ -4,9 +4,8 @@ import config from '../config/env';
 // Use memory storage so we can process files with sharp before uploading
 const storage = multer.memoryStorage();
 
-// File filter to validate file types
 const fileFilter = (
-  req: Express.Request,
+  _: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ): void => {
