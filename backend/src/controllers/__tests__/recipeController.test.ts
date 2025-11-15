@@ -30,8 +30,8 @@ describe('RecipeController', () => {
     jsonMock = vi.fn();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
     };
   });
 

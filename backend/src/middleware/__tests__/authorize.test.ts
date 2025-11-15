@@ -17,8 +17,8 @@ describe('Authorize Middleware', () => {
     statusMock = vi.fn().mockReturnThis();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
     };
 
     mockNext = vi.fn();
@@ -26,7 +26,7 @@ describe('Authorize Middleware', () => {
 
   describe('authorize', () => {
     it('calls next() when user has required role', () => {
-      mockReq.user = { userId: '123', role: UserRole.MEMBER };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.MEMBER };
       const middleware = authorize(UserRole.MEMBER, UserRole.ADMIN);
 
       middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -36,7 +36,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('calls next() when user is admin and admin role is allowed', () => {
-      mockReq.user = { userId: '123', role: UserRole.ADMIN };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.ADMIN };
       const middleware = authorize(UserRole.ADMIN);
 
       middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -46,7 +46,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('calls next() when admin accesses member-allowed route', () => {
-      mockReq.user = { userId: '123', role: UserRole.ADMIN };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.ADMIN };
       const middleware = authorize(UserRole.MEMBER, UserRole.ADMIN);
 
       middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -55,7 +55,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('returns 403 when user lacks required role', () => {
-      mockReq.user = { userId: '123', role: UserRole.MEMBER };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.MEMBER };
       const middleware = authorize(UserRole.ADMIN);
 
       middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -71,7 +71,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('returns 403 when guest tries to access member route', () => {
-      mockReq.user = { userId: '123', role: UserRole.GUEST };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.GUEST };
       const middleware = authorize(UserRole.MEMBER);
 
       middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -109,7 +109,7 @@ describe('Authorize Middleware', () => {
 
   describe('isAdmin', () => {
     it('allows admin users', () => {
-      mockReq.user = { userId: '123', role: UserRole.ADMIN };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.ADMIN };
 
       isAdmin(mockReq as AuthRequest, mockRes as Response, mockNext);
 
@@ -118,7 +118,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('blocks member users', () => {
-      mockReq.user = { userId: '123', role: UserRole.MEMBER };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.MEMBER };
 
       isAdmin(mockReq as AuthRequest, mockRes as Response, mockNext);
 
@@ -127,7 +127,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('blocks guest users', () => {
-      mockReq.user = { userId: '123', role: UserRole.GUEST };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.GUEST };
 
       isAdmin(mockReq as AuthRequest, mockRes as Response, mockNext);
 
@@ -145,7 +145,7 @@ describe('Authorize Middleware', () => {
 
   describe('isMemberOrAdmin', () => {
     it('allows member users', () => {
-      mockReq.user = { userId: '123', role: UserRole.MEMBER };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.MEMBER };
 
       isMemberOrAdmin(mockReq as AuthRequest, mockRes as Response, mockNext);
 
@@ -154,7 +154,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('allows admin users', () => {
-      mockReq.user = { userId: '123', role: UserRole.ADMIN };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.ADMIN };
 
       isMemberOrAdmin(mockReq as AuthRequest, mockRes as Response, mockNext);
 
@@ -163,7 +163,7 @@ describe('Authorize Middleware', () => {
     });
 
     it('blocks guest users', () => {
-      mockReq.user = { userId: '123', role: UserRole.GUEST };
+      mockReq.user = { id: '123', email: 'test@example.com', role: UserRole.GUEST };
 
       isMemberOrAdmin(mockReq as AuthRequest, mockRes as Response, mockNext);
 

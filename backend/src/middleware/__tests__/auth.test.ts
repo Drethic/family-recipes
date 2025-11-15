@@ -21,8 +21,8 @@ describe('Auth Middleware', () => {
     statusMock = vi.fn().mockReturnThis();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
     };
 
     mockNext = vi.fn();
@@ -129,7 +129,7 @@ describe('Auth Middleware', () => {
       authenticate(mockReq as AuthRequest, mockRes as Response, mockNext);
 
       expect(mockReq.user).toBeDefined();
-      expect(mockReq.user?.userId).toBe('user-123');
+      expect(mockReq.user?.id).toBe('user-123');
       expect(mockReq.user?.role).toBe('admin');
     });
   });
