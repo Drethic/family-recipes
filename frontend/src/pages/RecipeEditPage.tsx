@@ -262,14 +262,14 @@ export const RecipeEditPage = () => {
 
       // Delete marked images
       if (imagesToDelete.length > 0) {
-        await Promise.all(imagesToDelete.map((imageId) => deleteImage(imageId)));
+        await Promise.all(imagesToDelete.map((imageId) => deleteImage({ imageId, recipeId: id! })));
       }
 
       // Upload new images
       const hasNewImages = newProductImages.length > 0 || Array.from(newStepImages.values()).some((img) => img !== null);
-      if (hasNewImages) {
+      if (hasNewImages && result.data) {
         setUploadingImages(true);
-        const instructionIds = result.data.instructions?.map((inst) => inst.id) || [];
+        const instructionIds = result.data.instructions?.map((inst) => inst.id).filter((id): id is string => id !== undefined) || [];
         await uploadAllImages(id!, instructionIds);
         setUploadingImages(false);
       }

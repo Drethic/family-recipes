@@ -14,7 +14,6 @@ describe('ImageCarousel', () => {
       is_primary: true,
       order_index: 0,
       instruction_id: null,
-      created_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'image-2',
@@ -24,7 +23,6 @@ describe('ImageCarousel', () => {
       is_primary: false,
       order_index: 1,
       instruction_id: null,
-      created_at: '2024-01-01T00:00:00Z',
     },
     {
       id: 'image-3',
@@ -34,7 +32,6 @@ describe('ImageCarousel', () => {
       is_primary: false,
       order_index: 2,
       instruction_id: null,
-      created_at: '2024-01-01T00:00:00Z',
     },
   ];
 

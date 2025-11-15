@@ -30,7 +30,7 @@ describe('Auth Middleware', () => {
 
   describe('authenticate', () => {
     it('calls next() for valid token', () => {
-      const payload = { userId: '123', role: 'member' };
+      const payload = { id: '123', email: 'test@example.com', role: 'member' };
       const token = jwt.sign(payload, config.jwtSecret);
 
       mockReq.headers = { authorization: `Bearer ${token}` };
@@ -38,7 +38,7 @@ describe('Auth Middleware', () => {
       authenticate(mockReq as AuthRequest, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
-      expect(mockReq.user).toEqual(expect.objectContaining({ userId: '123', role: 'member' }));
+      expect(mockReq.user).toEqual(expect.objectContaining({ id: '123', role: 'member' }));
     });
 
     it('returns 401 for missing authorization header', () => {
@@ -85,7 +85,7 @@ describe('Auth Middleware', () => {
     });
 
     it('returns 401 for expired token', () => {
-      const payload = { userId: '123', role: 'member' };
+      const payload = { id: '123', email: 'test@example.com', role: 'member' };
       const expiredToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '-1s' });
 
       mockReq.headers = { authorization: `Bearer ${expiredToken}` };
@@ -103,7 +103,7 @@ describe('Auth Middleware', () => {
     });
 
     it('returns 401 for token signed with wrong secret', () => {
-      const payload = { userId: '123', role: 'member' };
+      const payload = { id: '123', email: 'test@example.com', role: 'member' };
       const wrongToken = jwt.sign(payload, 'wrong-secret');
 
       mockReq.headers = { authorization: `Bearer ${wrongToken}` };
@@ -121,7 +121,7 @@ describe('Auth Middleware', () => {
     });
 
     it('attaches decoded user to request', () => {
-      const payload = { userId: 'user-123', role: 'admin' };
+      const payload = { id: 'user-123', email: 'test@example.com', role: 'admin' };
       const token = jwt.sign(payload, config.jwtSecret);
 
       mockReq.headers = { authorization: `Bearer ${token}` };
@@ -155,7 +155,7 @@ describe('Auth Middleware', () => {
     });
 
     it('attaches user to request for valid token', () => {
-      const payload = { userId: '123', role: 'member' };
+      const payload = { id: '123', email: 'test@example.com', role: 'member' };
       const token = jwt.sign(payload, config.jwtSecret);
 
       mockReq.headers = { authorization: `Bearer ${token}` };
@@ -163,7 +163,7 @@ describe('Auth Middleware', () => {
       optionalAuthenticate(mockReq as AuthRequest, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
-      expect(mockReq.user).toEqual(expect.objectContaining({ userId: '123', role: 'member' }));
+      expect(mockReq.user).toEqual(expect.objectContaining({ id: '123', role: 'member' }));
       expect(statusMock).not.toHaveBeenCalled();
     });
 
@@ -179,7 +179,7 @@ describe('Auth Middleware', () => {
     });
 
     it('calls next() without user for expired token', () => {
-      const payload = { userId: '123', role: 'member' };
+      const payload = { id: '123', email: 'test@example.com', role: 'member' };
       const expiredToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '-1s' });
 
       mockReq.headers = { authorization: `Bearer ${expiredToken}` };
@@ -192,7 +192,7 @@ describe('Auth Middleware', () => {
     });
 
     it('calls next() without user for token with wrong secret', () => {
-      const payload = { userId: '123', role: 'member' };
+      const payload = { id: '123', email: 'test@example.com', role: 'member' };
       const wrongToken = jwt.sign(payload, 'wrong-secret');
 
       mockReq.headers = { authorization: `Bearer ${wrongToken}` };
