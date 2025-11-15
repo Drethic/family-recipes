@@ -46,7 +46,7 @@ export const handlers = [
   }),
 
   http.post(`${API_URL}/auth/register`, async ({ request }) => {
-    const body = await request.json() as unknown;
+    const body = await request.json() as { email: string; password: string; firstName: string; lastName: string };
 
     await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -171,7 +171,7 @@ export const handlers = [
   }),
 
   http.post(`${API_URL}/recipes`, async ({ request }) => {
-    const body = await request.json() as unknown;
+    const body = await request.json() as Record<string, unknown>;
 
     // Simulate error for specific title
     if (body.title === 'Error Recipe') {
@@ -195,7 +195,7 @@ export const handlers = [
   }),
 
   http.patch(`${API_URL}/recipes/:id`, async ({ params, request }) => {
-    const body = await request.json() as unknown;
+    const body = await request.json() as Record<string, unknown>;
     const recipe = mockRecipes.find((r) => r.id === params.id);
 
     if (!recipe) {
@@ -435,7 +435,7 @@ export const handlers = [
 
 
   http.patch(`${API_URL}/profile/:id/profile`, async ({ request }) => {
-    const body = await request.json() as unknown;
+    const body = await request.json() as Record<string, unknown>;
 
     // Simulate error for specific email
     if (body.email === 'error@example.com') {

@@ -119,7 +119,7 @@ describe('useLoginMutation', () => {
     await act(async () => {
       try {
         await result.current[0](loginData).unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -145,7 +145,7 @@ describe('useLoginMutation', () => {
     await act(async () => {
       try {
         await result.current[0](loginData).unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -202,7 +202,7 @@ describe('useRegisterMutation', () => {
     await act(async () => {
       try {
         await result.current[0](registerData).unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -250,7 +250,7 @@ describe('useLogoutMutation', () => {
     await act(async () => {
       try {
         await result.current[0]().unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });

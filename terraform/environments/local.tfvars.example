@@ -1,0 +1,59 @@
+# Local/Development Environment Configuration
+# Copy this file to local.tfvars and fill in the sensitive values
+# NEVER commit local.tfvars to version control
+
+environment = "local"
+aws_region  = "us-east-1"
+
+# VPC Configuration
+vpc_cidr             = "10.0.0.0/16"
+availability_zones   = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+
+# Database Configuration
+db_name        = "recipedb"
+db_volume_size = 20  # GB for PostgreSQL data volume
+
+# EC2 ASG Configuration
+instance_type     = "t4g.micro"  # Maximum cost savings
+backend_image_tag = "latest"
+
+# Database destruction control (DANGER: only for fresh dev starts)
+allow_dev_db_destruction = false  # Set to true ONLY when you want to destroy and recreate dev DB
+
+# Test users (enabled for local environment)
+test_admin_email  = "admin@recipes.com"
+test_member_email = "member@recipes.com"
+
+# ===================================================================
+# SENSITIVE VALUES - Set via environment variables or fill in below
+# ===================================================================
+# These values should NEVER be committed to version control!
+#
+# Option 1: Use environment variables (recommended for CI/CD)
+#   export TF_VAR_db_username="recipeuser"
+#   export TF_VAR_db_password="GENERATE_STRONG_PASSWORD"
+#   export TF_VAR_jwt_secret="GENERATE_JWT_SECRET"
+#   export TF_VAR_jwt_refresh_secret="GENERATE_JWT_REFRESH_SECRET"
+#   export TF_VAR_test_admin_password="GENERATE_ADMIN_PASSWORD"
+#   export TF_VAR_test_member_password="GENERATE_MEMBER_PASSWORD"
+#
+# Option 2: Uncomment and fill in the values below
+#   (Make sure this file is in .gitignore!)
+#
+# db_username          = "recipeuser"
+# db_password          = "REPLACE_WITH_STRONG_PASSWORD"
+# jwt_secret           = "REPLACE_WITH_JWT_SECRET"
+# jwt_refresh_secret   = "REPLACE_WITH_JWT_REFRESH_SECRET"
+# test_admin_password  = "REPLACE_WITH_ADMIN_PASSWORD"
+# test_member_password = "REPLACE_WITH_MEMBER_PASSWORD"
+
+# ===================================================================
+# How to generate secure secrets:
+# ===================================================================
+# openssl rand -base64 32   # For db_password
+# openssl rand -base64 32   # For jwt_secret
+# openssl rand -base64 32   # For jwt_refresh_secret
+# openssl rand -base64 16   # For test_admin_password
+# openssl rand -base64 16   # For test_member_password

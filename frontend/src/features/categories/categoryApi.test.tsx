@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { setupStore } from '@/test/utils/test-utils';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
+import { UserRole, ThemePreference } from '@/types';
 import {
   categoryApi,
   useGetCategoriesQuery,
@@ -89,7 +90,7 @@ describe('categoryApi', () => {
     it('fetches categories successfully', async () => {
       const store = setupStore({
         auth: {
-          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: 'member', status: 'approved', theme_preference: 'system', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: UserRole.MEMBER, is_approved: true, theme_preference: ThemePreference.SYSTEM, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
           token: 'test-token-123',
           isAuthenticated: true,
         },
@@ -256,7 +257,7 @@ describe('categoryApi', () => {
       await act(async () => {
         try {
           await result.current[0](newCategory).unwrap();
-        } catch (error) {
+        } catch (_error) {
           // May fail due to lack of auth, that's expected
         }
       });

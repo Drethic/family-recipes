@@ -1,22 +1,7 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useEffect, useState, ReactNode } from 'react';
 import { ThemePreference } from '@/types';
 import { useAppSelector } from '@/app/hooks';
-
-interface ThemeContextType {
-  theme: 'light' | 'dark';
-  themePreference: ThemePreference;
-  setThemePreference: (preference: ThemePreference) => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+import { ThemeContext } from './ThemeContext';
 
 interface ThemeProviderProps {
   children: ReactNode;

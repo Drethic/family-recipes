@@ -30,7 +30,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/register')
         .send({
           email: 'test@example.com',
@@ -152,7 +152,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/login')
         .send({
           email: 'test@example.com',
@@ -223,7 +223,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/refresh')
         .set('Cookie', ['refreshToken=test_token']);
 
@@ -250,7 +250,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/logout');
 
       expect(AuthController.logout).toHaveBeenCalled();
@@ -276,7 +276,7 @@ describe('Auth Routes', () => {
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .get('/api/auth/me');
 
       expect(AuthController.getMe).toHaveBeenCalled();
@@ -287,7 +287,7 @@ describe('Auth Routes', () => {
         res.status(401).json({ success: false, message: 'Unauthorized' });
       });
 
-      const response = await request(app)
+      await request(app)
         .get('/api/auth/me');
 
       expect(authenticate).toHaveBeenCalled();
@@ -297,37 +297,37 @@ describe('Auth Routes', () => {
   describe('Route configuration', () => {
     it('should have POST /register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const registerRoute = routes.find((layer) => layer.route.path === '/register');
+      const registerRoute = routes.find((layer) => layer.route?.path === '/register');
       expect(registerRoute).toBeDefined();
-      expect(registerRoute?.route.methods.post).toBe(true);
+      expect((registerRoute?.route as any)?.methods.post).toBe(true);
     });
 
     it('should have POST /login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const loginRoute = routes.find((layer) => layer.route.path === '/login');
+      const loginRoute = routes.find((layer) => layer.route?.path === '/login');
       expect(loginRoute).toBeDefined();
-      expect(loginRoute?.route.methods.post).toBe(true);
+      expect((loginRoute?.route as any)?.methods.post).toBe(true);
     });
 
     it('should have POST /refresh route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const refreshRoute = routes.find((layer) => layer.route.path === '/refresh');
+      const refreshRoute = routes.find((layer) => layer.route?.path === '/refresh');
       expect(refreshRoute).toBeDefined();
-      expect(refreshRoute?.route.methods.post).toBe(true);
+      expect((refreshRoute?.route as any)?.methods.post).toBe(true);
     });
 
     it('should have POST /logout route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const logoutRoute = routes.find((layer) => layer.route.path === '/logout');
+      const logoutRoute = routes.find((layer) => layer.route?.path === '/logout');
       expect(logoutRoute).toBeDefined();
-      expect(logoutRoute?.route.methods.post).toBe(true);
+      expect((logoutRoute?.route as any)?.methods.post).toBe(true);
     });
 
     it('should have GET /me route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const meRoute = routes.find((layer) => layer.route.path === '/me');
+      const meRoute = routes.find((layer) => layer.route?.path === '/me');
       expect(meRoute).toBeDefined();
-      expect(meRoute?.route.methods.get).toBe(true);
+      expect((meRoute?.route as any)?.methods.get).toBe(true);
     });
 
     it('should have exactly 5 routes', () => {
@@ -337,61 +337,61 @@ describe('Auth Routes', () => {
 
     it('should apply validators to register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const registerRoute = routes.find((layer) => layer.route.path === '/register');
-      expect(registerRoute?.route.stack.length).toBeGreaterThan(1);
+      const registerRoute = routes.find((layer) => layer.route?.path === '/register');
+      expect(registerRoute?.route?.stack.length).toBeGreaterThan(1);
     });
 
     it('should apply validators to login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const loginRoute = routes.find((layer) => layer.route.path === '/login');
-      expect(loginRoute?.route.stack.length).toBeGreaterThan(1);
+      const loginRoute = routes.find((layer) => layer.route?.path === '/login');
+      expect(loginRoute?.route?.stack.length).toBeGreaterThan(1);
     });
 
     it('should apply authenticate middleware to /me route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const meRoute = routes.find((layer) => layer.route.path === '/me');
-      expect(meRoute?.route.stack.length).toBeGreaterThan(1);
+      const meRoute = routes.find((layer) => layer.route?.path === '/me');
+      expect(meRoute?.route?.stack.length).toBeGreaterThan(1);
     });
 
     it('should not have GET /register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const registerRoute = routes.find((layer) => layer.route.path === '/register');
-      expect(registerRoute?.route.methods.get).toBeUndefined();
+      const registerRoute = routes.find((layer) => layer.route?.path === '/register');
+      expect((registerRoute?.route as any)?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const loginRoute = routes.find((layer) => layer.route.path === '/login');
-      expect(loginRoute?.route.methods.get).toBeUndefined();
+      const loginRoute = routes.find((layer) => layer.route?.path === '/login');
+      expect((loginRoute?.route as any)?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /logout route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const logoutRoute = routes.find((layer) => layer.route.path === '/logout');
-      expect(logoutRoute?.route.methods.get).toBeUndefined();
+      const logoutRoute = routes.find((layer) => layer.route?.path === '/logout');
+      expect((logoutRoute?.route as any)?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /refresh route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const refreshRoute = routes.find((layer) => layer.route.path === '/refresh');
-      expect(refreshRoute?.route.methods.get).toBeUndefined();
+      const refreshRoute = routes.find((layer) => layer.route?.path === '/refresh');
+      expect((refreshRoute?.route as any)?.methods.get).toBeUndefined();
     });
 
     it('should not have PUT routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const putRoutes = routes.filter((layer) => layer.route.methods.put);
+      const putRoutes = routes.filter((layer) => (layer.route as any)?.methods.put);
       expect(putRoutes).toHaveLength(0);
     });
 
     it('should not have DELETE routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const deleteRoutes = routes.filter((layer) => layer.route.methods.delete);
+      const deleteRoutes = routes.filter((layer) => (layer.route as any)?.methods.delete);
       expect(deleteRoutes).toHaveLength(0);
     });
 
     it('should not have PATCH routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const patchRoutes = routes.filter((layer) => layer.route.methods.patch);
+      const patchRoutes = routes.filter((layer) => (layer.route as any)?.methods.patch);
       expect(patchRoutes).toHaveLength(0);
     });
   });

@@ -89,12 +89,12 @@ export class AuthController {
       sendSuccess(res, {
         accessToken: newAccessToken,
       }, 'Token refreshed successfully');
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       sendUnauthorized(res, 'Invalid refresh token');
     }
   }
 
-  static async logout(req: AuthRequest, res: Response): Promise<void> {
+  static async logout(_req: AuthRequest, res: Response): Promise<void> {
     res.clearCookie('refreshToken');
     sendSuccess(res, null, 'Logout successful');
   }

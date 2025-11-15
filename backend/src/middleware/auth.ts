@@ -23,15 +23,15 @@ export const authenticate = (
       const decoded = jwt.verify(token, config.jwtSecret) as TokenPayload;
       req.user = decoded;
       next();
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
+    } catch (_error) {
+      if (_error instanceof jwt.TokenExpiredError) {
         sendUnauthorized(res, 'Token expired');
         return;
       }
       sendUnauthorized(res, 'Invalid token');
       return;
     }
-  } catch (error) {
+  } catch (_error) {
     sendUnauthorized(res, 'Authentication failed');
     return;
   }
@@ -55,12 +55,12 @@ export const optionalAuthenticate = (
     try {
       const decoded = jwt.verify(token, config.jwtSecret) as TokenPayload;
       req.user = decoded;
-    } catch (error) {
+    } catch (_error) {
       // Token is invalid but we don't fail - just continue without user
     }
 
     next();
-  } catch (error) {
+  } catch (_error) {
     next();
   }
 };

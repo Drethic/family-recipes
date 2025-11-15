@@ -235,7 +235,7 @@ describe('useUpdateUserRoleMutation', () => {
     await act(async () => {
       try {
         await result.current[0](payload).unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -287,7 +287,7 @@ describe('useUpdateUserProfileMutation', () => {
     await act(async () => {
       try {
         await result.current[0](payload).unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -330,7 +330,7 @@ describe('useApproveUserMutation', () => {
     await act(async () => {
       try {
         await result.current[0]('999').unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -370,7 +370,7 @@ describe('useRejectUserMutation', () => {
     await act(async () => {
       try {
         await result.current[0]('999').unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -410,7 +410,7 @@ describe('useDeleteUserMutation', () => {
     await act(async () => {
       try {
         await result.current[0]('999').unwrap();
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });

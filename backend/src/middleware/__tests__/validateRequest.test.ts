@@ -21,8 +21,8 @@ describe('ValidateRequest Middleware', () => {
     statusMock = vi.fn().mockReturnThis();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
     };
 
     mockNext = vi.fn();

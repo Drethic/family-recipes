@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { setupStore } from '@/test/utils/test-utils';
+import { UserRole, ThemePreference, RecipeDifficulty } from '@/types';
 import {
   recipeApi,
   useGetRecipesQuery,
@@ -188,12 +189,11 @@ describe('recipeApi', () => {
             email: 'test@example.com',
             first_name: 'Test',
             last_name: 'User',
-            role: 'member' as const,
+            role: UserRole.MEMBER,
             is_approved: true,
-            approved_at: new Date().toISOString(),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            theme_preference: 'light' as const,
+            theme_preference: ThemePreference.LIGHT,
           },
           token: 'test-token',
           isAuthenticated: true,
@@ -242,7 +242,7 @@ describe('recipeApi', () => {
           prep_time: 20,
           cook_time: 40,
           servings: 6,
-          difficulty: 'medium' as const,
+          difficulty: RecipeDifficulty.MEDIUM,
           ingredients: [{ name: 'Flour', quantity: '2', unit: 'cups', order_index: 0 }],
           instructions: [{ step_number: 1, description: 'Mix' }],
           category_ids: ['1'],

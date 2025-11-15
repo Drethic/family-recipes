@@ -50,3 +50,25 @@ uploads/
 /playwright/.cache/
 /playwright/trace/
 *.trace.zip
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Terraform variable files (contain secrets)
+*.tfvars
+# EXCEPT example files
+!*.tfvars.example
+
+# Additional Terraform sensitive files
+terraform.tfvars
+.terraform.lock.hcl
