@@ -5,6 +5,15 @@ import authRoutes from '../auth.routes';
 import { AuthController } from '../../controllers/authController';
 import { authenticate } from '../../middleware/auth';
 
+// Type for Express route layer with methods property
+interface RouteLayer {
+  route?: {
+    path: string;
+    stack: unknown[];
+    methods: Record<string, boolean>;
+  };
+}
+
 vi.mock('../../controllers/authController');
 vi.mock('../../middleware/auth');
 
@@ -16,7 +25,7 @@ describe('Auth Routes', () => {
     app.use(express.json());
     app.use('/api/auth', authRoutes);
 
-    vi.mocked(authenticate).mockImplementation((req, res, next) => next());
+    vi.mocked(authenticate).mockImplementation((_req, _res, next) => next());
   });
 
   afterEach(() => {
@@ -299,35 +308,35 @@ describe('Auth Routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const registerRoute = routes.find((layer) => layer.route?.path === '/register');
       expect(registerRoute).toBeDefined();
-      expect((registerRoute?.route as any)?.methods.post).toBe(true);
+      expect((registerRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have POST /login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const loginRoute = routes.find((layer) => layer.route?.path === '/login');
       expect(loginRoute).toBeDefined();
-      expect((loginRoute?.route as any)?.methods.post).toBe(true);
+      expect((loginRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have POST /refresh route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const refreshRoute = routes.find((layer) => layer.route?.path === '/refresh');
       expect(refreshRoute).toBeDefined();
-      expect((refreshRoute?.route as any)?.methods.post).toBe(true);
+      expect((refreshRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have POST /logout route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const logoutRoute = routes.find((layer) => layer.route?.path === '/logout');
       expect(logoutRoute).toBeDefined();
-      expect((logoutRoute?.route as any)?.methods.post).toBe(true);
+      expect((logoutRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have GET /me route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const meRoute = routes.find((layer) => layer.route?.path === '/me');
       expect(meRoute).toBeDefined();
-      expect((meRoute?.route as any)?.methods.get).toBe(true);
+      expect((meRoute as RouteLayer)?.route?.methods.get).toBe(true);
     });
 
     it('should have exactly 5 routes', () => {
@@ -356,42 +365,42 @@ describe('Auth Routes', () => {
     it('should not have GET /register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const registerRoute = routes.find((layer) => layer.route?.path === '/register');
-      expect((registerRoute?.route as any)?.methods.get).toBeUndefined();
+      expect((registerRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const loginRoute = routes.find((layer) => layer.route?.path === '/login');
-      expect((loginRoute?.route as any)?.methods.get).toBeUndefined();
+      expect((loginRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /logout route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const logoutRoute = routes.find((layer) => layer.route?.path === '/logout');
-      expect((logoutRoute?.route as any)?.methods.get).toBeUndefined();
+      expect((logoutRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /refresh route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
       const refreshRoute = routes.find((layer) => layer.route?.path === '/refresh');
-      expect((refreshRoute?.route as any)?.methods.get).toBeUndefined();
+      expect((refreshRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have PUT routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const putRoutes = routes.filter((layer) => (layer.route as any)?.methods.put);
+      const putRoutes = routes.filter((layer) => (layer as RouteLayer).route?.methods.put);
       expect(putRoutes).toHaveLength(0);
     });
 
     it('should not have DELETE routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const deleteRoutes = routes.filter((layer) => (layer.route as any)?.methods.delete);
+      const deleteRoutes = routes.filter((layer) => (layer as RouteLayer).route?.methods.delete);
       expect(deleteRoutes).toHaveLength(0);
     });
 
     it('should not have PATCH routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const patchRoutes = routes.filter((layer) => (layer.route as any)?.methods.patch);
+      const patchRoutes = routes.filter((layer) => (layer as RouteLayer).route?.methods.patch);
       expect(patchRoutes).toHaveLength(0);
     });
   });

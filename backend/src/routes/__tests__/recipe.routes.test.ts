@@ -1,10 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import recipeRoutes from '../recipe.routes';
 
+// Type for Express route layer with methods property
+interface RouteLayer {
+  route?: {
+    path: string;
+    stack: unknown[];
+    methods: Record<string, boolean>;
+  };
+}
+
 describe('Recipe Routes', () => {
   describe('Route configuration', () => {
     const routes = recipeRoutes.stack.filter(l => l.route);
-    
+
     it('should have GET / route', () => {
       const route = routes.find(l => l.route?.path === '/');
       expect(route).toBeDefined();
@@ -21,17 +30,17 @@ describe('Recipe Routes', () => {
     });
 
     it('should have POST / route', () => {
-      const route = routes.find(l => l.route?.path === '/' && l(route as any)?.methods.post);
+      const route = routes.find(l => l.route?.path === '/' && (l as RouteLayer).route?.methods.post);
       expect(route).toBeDefined();
     });
 
     it('should have PATCH /:id route', () => {
-      const route = routes.find(l => l.route?.path === '/:id' && l(route as any)?.methods.patch);
+      const route = routes.find(l => l.route?.path === '/:id' && (l as RouteLayer).route?.methods.patch);
       expect(route).toBeDefined();
     });
 
     it('should have DELETE /:id route', () => {
-      const route = routes.find(l => l.route?.path === '/:id' && l(route as any)?.methods.delete);
+      const route = routes.find(l => l.route?.path === '/:id' && (l as RouteLayer).route?.methods.delete);
       expect(route).toBeDefined();
     });
 

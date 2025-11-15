@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client as _S3Client } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 import fs from 'fs/promises';
 
