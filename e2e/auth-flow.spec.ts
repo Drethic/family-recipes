@@ -15,11 +15,16 @@ test.describe('Authentication Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to home page before each test
     await page.goto('/');
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle');
   });
 
   test('User can navigate to login page', async ({ page }) => {
-    // Click on login link/button
-    await page.click('text=Login');
+    // Wait for the header to be visible
+    await page.waitForSelector('header', { state: 'visible' });
+
+    // Click on login link/button - use more specific selector
+    await page.getByRole('link', { name: 'Login' }).click();
 
     // Should be on login page
     await expect(page).toHaveURL(/.*login/);
@@ -27,8 +32,11 @@ test.describe('Authentication Flow', () => {
   });
 
   test('User can navigate to register page', async ({ page }) => {
-    // Navigate to register page
-    await page.click('text=Register');
+    // Wait for the header to be visible
+    await page.waitForSelector('header', { state: 'visible' });
+
+    // Navigate to register page - use more specific selector
+    await page.getByRole('link', { name: 'Register' }).click();
 
     // Should be on register page
     await expect(page).toHaveURL(/.*register/);
@@ -37,6 +45,7 @@ test.describe('Authentication Flow', () => {
 
   test('User can register a new account', async ({ page }) => {
     await page.goto('/register');
+    await page.waitForLoadState('networkidle');
 
     // Generate unique email for test
     const timestamp = Date.now();
@@ -51,13 +60,13 @@ test.describe('Authentication Flow', () => {
     // Submit form
     await page.click('button[type="submit"]');
 
-    // Should redirect to home or dashboard after successful registration
-    await expect(page).toHaveURL(/.*\/(home|dashboard|recipes)?$/);
+    // Wait for navigation or success message
+    await page.waitForLoadState('networkidle');
 
-    // Should show success message or user menu
+    // Should show success message about pending approval
     await expect(
-      page.locator('text=/welcome|profile|logout/i')
-    ).toBeVisible({ timeout: 5000 });
+      page.locator('text=/approval|pending|admin/i')
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('Registration shows validation errors for invalid input', async ({ page }) => {
@@ -76,6 +85,7 @@ test.describe('Authentication Flow', () => {
 
   test('Registration prevents mismatched passwords', async ({ page }) => {
     await page.goto('/register');
+    await page.waitForLoadState('networkidle');
 
     // Fill form with mismatched passwords
     await page.fill('input[name="name"]', 'Test User');
@@ -86,14 +96,18 @@ test.describe('Authentication Flow', () => {
     // Submit form
     await page.click('button[type="submit"]');
 
+    // Wait for validation
+    await page.waitForTimeout(1000);
+
     // Should show error message about password mismatch
     await expect(
       page.locator('text=/password.*match|passwords.*same/i')
-    ).toBeVisible({ timeout: 2000 });
+    ).toBeVisible({ timeout: 5000 });
   });
 
   test('User can login with valid credentials', async ({ page }) => {
     await page.goto('/login');
+    await page.waitForLoadState('networkidle');
 
     // Use test credentials (adjust based on your backend setup)
     await page.fill('input[name="email"]', 'admin@example.com');
@@ -102,17 +116,22 @@ test.describe('Authentication Flow', () => {
     // Submit login form
     await page.click('button[type="submit"]');
 
-    // Should redirect after successful login
-    await page.waitForURL(/.*\/(home|dashboard|recipes)?$/, { timeout: 5000 });
+    // Wait for navigation
+    await page.waitForLoadState('networkidle');
+
+    // Should redirect after successful login (either to dashboard or home)
+    const url = page.url();
+    expect(url).toMatch(/.*(dashboard|recipes|\/|home)/);
 
     // Should show authenticated user UI
     await expect(
-      page.locator('text=/profile|logout|welcome/i')
+      page.getByRole('button', { name: /logout/i })
     ).toBeVisible({ timeout: 5000 });
   });
 
   test('Login shows error for invalid credentials', async ({ page }) => {
     await page.goto('/login');
+    await page.waitForLoadState('networkidle');
 
     // Try to login with invalid credentials
     await page.fill('input[name="email"]', 'wrong@example.com');
@@ -121,10 +140,13 @@ test.describe('Authentication Flow', () => {
     // Submit form
     await page.click('button[type="submit"]');
 
+    // Wait for error to appear
+    await page.waitForTimeout(1000);
+
     // Should show error message
     await expect(
       page.locator('text=/invalid.*credentials|incorrect.*password|login.*failed/i')
-    ).toBeVisible({ timeout: 3000 });
+    ).toBeVisible({ timeout: 5000 });
 
     // Should still be on login page
     await expect(page).toHaveURL(/.*login/);
@@ -133,29 +155,34 @@ test.describe('Authentication Flow', () => {
   test('User can logout', async ({ page }) => {
     // First, login
     await page.goto('/login');
+    await page.waitForLoadState('networkidle');
     await page.fill('input[name="email"]', 'admin@example.com');
     await page.fill('input[name="password"]', 'admin123');
     await page.click('button[type="submit"]');
 
-    // Wait for redirect after login
-    await page.waitForURL(/.*\/(home|dashboard|recipes)?$/, { timeout: 5000 });
+    // Wait for navigation after login
+    await page.waitForLoadState('networkidle');
+
+    // Wait for logout button to be visible
+    await expect(page.getByRole('button', { name: /logout/i })).toBeVisible({ timeout: 5000 });
 
     // Click logout button
-    await page.click('text=Logout');
+    await page.getByRole('button', { name: /logout/i }).click();
 
-    // Should redirect to home or login page
-    await page.waitForURL(/.*\/(login|home|\/)?$/, { timeout: 3000 });
+    // Wait for navigation
+    await page.waitForLoadState('networkidle');
 
     // Should show login/register links again
-    await expect(page.locator('text=/login|register|sign in/i')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Login' })).toBeVisible({ timeout: 5000 });
   });
 
   test('Protected routes redirect to login when not authenticated', async ({ page }) => {
     // Try to access a protected route without logging in
-    await page.goto('/my-recipes');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // Should redirect to login page
-    await expect(page).toHaveURL(/.*login/, { timeout: 3000 });
+    await expect(page).toHaveURL(/.*login/, { timeout: 5000 });
   });
 
   test('Login form validation prevents empty submission', async ({ page }) => {

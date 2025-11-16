@@ -107,10 +107,16 @@ rm -rf .claude/temp/*
 **Pre-Commit Checks (Automatic on Every Commit):**
 - ✅ Frontend: ESLint (0 errors, 0 warnings)
 - ✅ Frontend: TypeScript type-check (0 errors)
-- ✅ Frontend: Unit tests (514 tests must pass)
+- ✅ Frontend: Unit tests with coverage (≥90% all categories)
 - ✅ Backend: ESLint (0 errors, 0 warnings)
 - ✅ Backend: TypeScript type-check (0 errors)
-- ✅ Backend: Unit tests (820 tests must pass)
+- ✅ Backend: Unit tests with coverage (≥90% all categories)
+
+**E2E Tests:**
+- E2E tests are **NOT** run in pre-commit hooks (they take 20+ minutes)
+- E2E tests run automatically in CI
+- To run E2E tests locally: `npm run test:e2e`
+- E2E test files: `e2e/` directory (Playwright tests)
 
 **STRICTLY FORBIDDEN:**
 ```bash

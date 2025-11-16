@@ -24,12 +24,12 @@ else
 fi
 echo ""
 
-echo "🧪 Frontend: Running tests..."
-if ! npm test; then
-  echo "❌ Frontend: Tests failed"
+echo "🧪 Frontend: Running tests with coverage..."
+if ! npm run test:coverage; then
+  echo "❌ Frontend: Tests or coverage failed"
   FAILED=1
 else
-  echo "✅ Frontend: Tests passed"
+  echo "✅ Frontend: Tests and coverage passed"
 fi
 echo ""
 
@@ -53,17 +53,23 @@ else
 fi
 echo ""
 
-echo "🧪 Backend: Running tests..."
-if ! npm test; then
-  echo "❌ Backend: Tests failed"
+echo "🧪 Backend: Running tests with coverage..."
+if ! npm run test:coverage; then
+  echo "❌ Backend: Tests or coverage failed"
   FAILED=1
 else
-  echo "✅ Backend: Tests passed"
+  echo "✅ Backend: Tests and coverage passed"
 fi
 echo ""
 
 # Return to root
 cd ..
+
+# E2E tests note
+echo "ℹ️  Note: E2E tests are skipped in pre-commit (they take ~20+ minutes)"
+echo "   E2E tests will run automatically in CI"
+echo "   To run E2E tests locally: npm run test:e2e"
+echo ""
 
 # Check if any step failed
 if [ $FAILED -eq 1 ]; then
