@@ -115,14 +115,22 @@ rm -rf .claude/temp/*
 
 **IMPORTANT: E2E Test Enforcement**
 - E2E tests run by default in pre-commit hooks (takes 20+ minutes)
-- This prevents E2E test failures from reaching CI
+- E2E tests can be skipped locally with `SKIP_E2E=1 git commit`
+- E2E tests **ALWAYS** run in CI and must pass before merging
 - E2E test files: `e2e/` directory (Playwright tests)
 - To run E2E tests manually: `npm run test:e2e`
 
-**Skipping E2E Tests (When Needed):**
-- **Recommended**: `SKIP_E2E=1 git commit` - Skips E2E tests but runs all other checks
-- **NEVER** use `git commit --no-verify` - Bypasses ALL quality checks (forbidden)
-- E2E tests will still run in CI and must pass before merging
+**Skipping E2E Tests Locally:**
+- Use `SKIP_E2E=1 git commit` to skip E2E tests in pre-commit for faster iteration
+- Frontend/backend unit tests and coverage checks CANNOT be skipped
+- E2E tests will still run in CI - this only skips the local pre-commit check
+- Use this for rapid development, but ensure E2E tests pass before pushing
+
+**CRITICAL: NO test.skip() in E2E Test Files**
+- NEVER use `test.skip()` or conditional skipping inside E2E test files
+- Tests must run on ALL device types (desktop, mobile, tablet)
+- Use conditional assertions if needed, but tests must always execute
+- Skipping tests in files gives false confidence - not allowed
 
 **STRICTLY FORBIDDEN:**
 ```bash
@@ -134,16 +142,21 @@ git commit -n
 ```
 
 **Why `--no-verify` is Prohibited:**
-- Bypasses critical quality checks
+- Bypasses critical quality checks including E2E tests
 - Can introduce breaking changes to the codebase
 - Violates the project's quality standards
 - Defeats the purpose of automated testing
 - Can cause CI/CD pipeline failures
+- E2E test failures WILL block PRs in CI
 
 **If Pre-Commit Checks Fail:**
 1. **Fix the errors** - Do not bypass them
-2. Run checks manually: `npm run lint`, `npm run type-check`, `npm test`
-3. Ensure all tests pass before committing
+2. Run checks manually:
+   - `npm run lint` (frontend and backend)
+   - `npm run type-check` (frontend and backend)
+   - `npm run test:coverage` (frontend and backend)
+   - `npm run test:e2e` (E2E tests - all devices)
+3. Ensure ALL tests pass before committing
 4. If stuck, ask for help - never bypass the hooks
 
 **Hook Installation:**

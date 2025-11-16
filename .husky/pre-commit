@@ -65,14 +65,14 @@ echo ""
 # Return to root
 cd ..
 
-# E2E tests (can be skipped with SKIP_E2E=1)
+# E2E tests (can be skipped with SKIP_E2E=1 for faster local commits)
 if [ "$SKIP_E2E" = "1" ]; then
   echo "⏭️  E2E tests skipped (SKIP_E2E=1)"
-  echo "⚠️  WARNING: E2E tests will still run in CI and may fail there"
+  echo "⚠️  WARNING: E2E tests will still run in CI and must pass"
   echo ""
 else
   echo "🎭 Running E2E tests (this may take 20+ minutes)..."
-  echo "💡 Tip: Use 'SKIP_E2E=1 git commit' to skip E2E tests for faster commits"
+  echo "💡 Tip: Use 'SKIP_E2E=1 git commit' to skip E2E tests locally"
   echo ""
   if ! npm run test:e2e; then
     echo "❌ E2E tests failed"
