@@ -12,14 +12,11 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Authentication Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navigate to home page before each test
-    await page.goto('/');
-    // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
-  });
-
   test('User can navigate to login page', async ({ page }) => {
+    // Navigate to home page
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
     // Wait for the header to be visible
     await page.waitForSelector('header', { state: 'visible' });
 
@@ -32,6 +29,10 @@ test.describe('Authentication Flow', () => {
   });
 
   test('User can navigate to register page', async ({ page }) => {
+    // Navigate to home page
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
     // Wait for the header to be visible
     await page.waitForSelector('header', { state: 'visible' });
 
@@ -178,6 +179,7 @@ test.describe('Authentication Flow', () => {
 
   test('Protected routes redirect to login when not authenticated', async ({ page }) => {
     // Try to access a protected route without logging in
+    // Don't navigate to home first - go directly to protected route
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
@@ -186,7 +188,9 @@ test.describe('Authentication Flow', () => {
   });
 
   test('Login form validation prevents empty submission', async ({ page }) => {
+    // Navigate directly to login page
     await page.goto('/login');
+    await page.waitForLoadState('networkidle');
 
     // Try to submit empty form
     await page.click('button[type="submit"]');
