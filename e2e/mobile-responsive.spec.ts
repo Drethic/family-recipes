@@ -18,10 +18,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Mobile Responsive Design', () => {
   test('Mobile navigation menu should work', async ({ page, isMobile }) => {
     // This test only runs on mobile viewports
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: requires mobile viewport');
 
     await page.goto('/');
 
@@ -53,10 +50,7 @@ test.describe('Mobile Responsive Design', () => {
   });
 
   test('Touch targets should be large enough (minimum 44x44px)', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: requires mobile viewport for touch target validation');
 
     await page.goto('/');
 
@@ -81,10 +75,7 @@ test.describe('Mobile Responsive Design', () => {
   });
 
   test('Forms should work with mobile input types', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: validates mobile-specific input types');
 
     await page.goto('/login');
 
@@ -148,10 +139,7 @@ test.describe('Mobile Responsive Design', () => {
   });
 
   test('Mobile viewport should show mobile-optimized layout', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: validates mobile-specific layout');
 
     await page.goto('/');
 
@@ -173,10 +161,10 @@ test.describe('Mobile Responsive Design', () => {
     const viewport = page.viewportSize();
 
     // Skip if not tablet size (768-1024px)
-    if (!viewport || viewport.width < 768 || viewport.width > 1024) {
-      test.skip();
-      return;
-    }
+    test.skip(
+      !viewport || viewport.width < 768 || viewport.width > 1024,
+      'Tablet-only test: requires viewport width between 768-1024px'
+    );
 
     await page.goto('/');
 
@@ -187,10 +175,7 @@ test.describe('Mobile Responsive Design', () => {
   });
 
   test('Landscape orientation should work properly', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: validates landscape orientation on mobile devices');
 
     await page.goto('/');
 
@@ -205,10 +190,7 @@ test.describe('Mobile Responsive Design', () => {
   });
 
   test('Touch interactions should work for buttons', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: validates touch interactions');
 
     await page.goto('/login');
 
@@ -225,10 +207,7 @@ test.describe('Mobile Responsive Design', () => {
   });
 
   test('Long content should be scrollable on mobile', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip();
-      return;
-    }
+    test.skip(!isMobile, 'Mobile-only test: validates scrollable content on mobile devices');
 
     await page.goto('/');
 

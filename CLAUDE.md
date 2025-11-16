@@ -111,12 +111,18 @@ rm -rf .claude/temp/*
 - ✅ Backend: ESLint (0 errors, 0 warnings)
 - ✅ Backend: TypeScript type-check (0 errors)
 - ✅ Backend: Unit tests with coverage (≥90% all categories)
+- ✅ **E2E Tests: ALL tests must pass (Playwright - takes 20+ minutes)**
 
-**E2E Tests:**
-- E2E tests are **NOT** run in pre-commit hooks (they take 20+ minutes)
-- E2E tests run automatically in CI
-- To run E2E tests locally: `npm run test:e2e`
+**IMPORTANT: E2E Test Enforcement**
+- E2E tests run by default in pre-commit hooks (takes 20+ minutes)
+- This prevents E2E test failures from reaching CI
 - E2E test files: `e2e/` directory (Playwright tests)
+- To run E2E tests manually: `npm run test:e2e`
+
+**Skipping E2E Tests (When Needed):**
+- **Recommended**: `SKIP_E2E=1 git commit` - Skips E2E tests but runs all other checks
+- **NEVER** use `git commit --no-verify` - Bypasses ALL quality checks (forbidden)
+- E2E tests will still run in CI and must pass before merging
 
 **STRICTLY FORBIDDEN:**
 ```bash

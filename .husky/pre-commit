@@ -65,11 +65,23 @@ echo ""
 # Return to root
 cd ..
 
-# E2E tests note
-echo "ℹ️  Note: E2E tests are skipped in pre-commit (they take ~20+ minutes)"
-echo "   E2E tests will run automatically in CI"
-echo "   To run E2E tests locally: npm run test:e2e"
-echo ""
+# E2E tests (can be skipped with SKIP_E2E=1)
+if [ "$SKIP_E2E" = "1" ]; then
+  echo "⏭️  E2E tests skipped (SKIP_E2E=1)"
+  echo "⚠️  WARNING: E2E tests will still run in CI and may fail there"
+  echo ""
+else
+  echo "🎭 Running E2E tests (this may take 20+ minutes)..."
+  echo "💡 Tip: Use 'SKIP_E2E=1 git commit' to skip E2E tests for faster commits"
+  echo ""
+  if ! npm run test:e2e; then
+    echo "❌ E2E tests failed"
+    FAILED=1
+  else
+    echo "✅ E2E tests passed"
+  fi
+  echo ""
+fi
 
 # Check if any step failed
 if [ $FAILED -eq 1 ]; then

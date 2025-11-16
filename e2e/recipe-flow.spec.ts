@@ -45,13 +45,14 @@ test.describe('Recipe Viewing', () => {
     const firstRecipe = page.locator('a[href*="/recipe"]').first();
     const recipeExists = await firstRecipe.count();
 
-    if (recipeExists > 0) {
-      await firstRecipe.click();
-      await page.waitForLoadState('networkidle');
+    // Skip test if no recipes exist (data-dependent test)
+    test.skip(recipeExists === 0, 'No recipes available to test recipe details view');
 
-      // Should show recipe details
-      await expect(page.locator('h1, h2')).toBeVisible();
-    }
+    await firstRecipe.click();
+    await page.waitForLoadState('networkidle');
+
+    // Should show recipe details
+    await expect(page.locator('h1, h2')).toBeVisible();
   });
 });
 
@@ -122,14 +123,15 @@ test.describe('Recipe Creation', () => {
     const addIngredientBtn = page.locator('button').filter({ hasText: /add.*ingredient|add/i }).first();
     const hasAddButton = await addIngredientBtn.count();
 
-    if (hasAddButton > 0) {
-      // Click to add ingredient field
-      await addIngredientBtn.click();
+    // Skip test if Add button doesn't exist (feature may not be implemented yet)
+    test.skip(hasAddButton === 0, 'Add ingredient button not found - dynamic ingredient feature may not be implemented');
 
-      // Should add another ingredient field
-      await page.waitForTimeout(500);
-      expect(true).toBe(true); // Just verify button click worked
-    }
+    // Click to add ingredient field
+    await addIngredientBtn.click();
+
+    // Should add another ingredient field
+    await page.waitForTimeout(500);
+    expect(true).toBe(true); // Just verify button click worked
   });
 });
 
@@ -150,22 +152,23 @@ test.describe('Recipe Management', () => {
     const editButton = page.getByRole('link', { name: /edit/i }).or(page.getByRole('button', { name: /edit/i })).first();
     const hasEditButton = await editButton.count();
 
-    if (hasEditButton > 0) {
-      await editButton.click();
-      await page.waitForLoadState('networkidle');
+    // Skip test if no edit button exists (user may not have any recipes)
+    test.skip(hasEditButton === 0, 'No Edit button found - user may not have any recipes to edit');
 
-      // Update title if field exists
-      const titleField = page.locator('input[name="title"]');
-      if (await titleField.count() > 0) {
-        await titleField.fill('Updated Recipe Title E2E');
-      }
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
 
-      // Submit changes if submit button exists
-      await page.click('button[type="submit"]');
-
-      // Should redirect back
-      await page.waitForURL(/.*recipes?.*/, { timeout: 5000 });
+    // Update title if field exists
+    const titleField = page.locator('input[name="title"]');
+    if (await titleField.count() > 0) {
+      await titleField.fill('Updated Recipe Title E2E');
     }
+
+    // Submit changes if submit button exists
+    await page.click('button[type="submit"]');
+
+    // Should redirect back
+    await page.waitForURL(/.*recipes?.*/, { timeout: 5000 });
   });
 
   test('User can delete their own recipe', async ({ page }) => {
@@ -183,19 +186,20 @@ test.describe('Recipe Management', () => {
     const deleteButton = page.getByRole('button', { name: /delete/i }).first();
     const hasDeleteButton = await deleteButton.count();
 
-    if (hasDeleteButton > 0) {
-      // Handle confirmation dialog if present
-      page.on('dialog', (dialog) => dialog.accept());
+    // Skip test if no delete button exists (user may not have any recipes)
+    test.skip(hasDeleteButton === 0, 'No Delete button found - user may not have any recipes to delete');
 
-      // Click delete
-      await deleteButton.click();
+    // Handle confirmation dialog if present
+    page.on('dialog', (dialog) => dialog.accept());
 
-      // Wait for deletion
-      await page.waitForLoadState('networkidle');
+    // Click delete
+    await deleteButton.click();
 
-      // Should still be on a valid page
-      await expect(page.locator('body')).toBeVisible();
-    }
+    // Wait for deletion
+    await page.waitForLoadState('networkidle');
+
+    // Should still be on a valid page
+    await expect(page.locator('body')).toBeVisible();
   });
 });
 
@@ -232,15 +236,16 @@ test.describe('Admin Recipe Approval', () => {
     const approveButton = page.getByRole('button', { name: /approve/i }).first();
     const hasApproveButton = await approveButton.count();
 
-    if (hasApproveButton > 0) {
-      await approveButton.click();
+    // Skip test if no approve button exists (no pending recipes to approve)
+    test.skip(hasApproveButton === 0, 'No Approve button found - no pending recipes available');
 
-      // Wait for response
-      await page.waitForLoadState('networkidle');
+    await approveButton.click();
 
-      // Should still have content
-      await expect(page.locator('body')).toBeVisible();
-    }
+    // Wait for response
+    await page.waitForLoadState('networkidle');
+
+    // Should still have content
+    await expect(page.locator('body')).toBeVisible();
   });
 
   test('Admin can reject a recipe', async ({ page }) => {
@@ -258,15 +263,16 @@ test.describe('Admin Recipe Approval', () => {
     const rejectButton = page.getByRole('button', { name: /reject/i }).first();
     const hasRejectButton = await rejectButton.count();
 
-    if (hasRejectButton > 0) {
-      await rejectButton.click();
+    // Skip test if no reject button exists (no pending recipes to reject)
+    test.skip(hasRejectButton === 0, 'No Reject button found - no pending recipes available');
 
-      // Wait for response
-      await page.waitForLoadState('networkidle');
+    await rejectButton.click();
 
-      // Should still have content
-      await expect(page.locator('body')).toBeVisible();
-    }
+    // Wait for response
+    await page.waitForLoadState('networkidle');
+
+    // Should still have content
+    await expect(page.locator('body')).toBeVisible();
   });
 });
 
@@ -286,15 +292,16 @@ test.describe('Recipe Search and Filtering', () => {
     const searchInput = page.locator('input[type="search"], input[placeholder*="search" i]');
     const hasSearch = await searchInput.count();
 
-    if (hasSearch > 0) {
-      await searchInput.fill('pasta');
+    // Skip test if search input doesn't exist (search feature may not be implemented)
+    test.skip(hasSearch === 0, 'No search input found - search feature may not be implemented yet');
 
-      // Wait for search results
-      await page.waitForLoadState('networkidle');
+    await searchInput.fill('pasta');
 
-      // Results should update
-      await expect(page.locator('body')).toBeVisible();
-    }
+    // Wait for search results
+    await page.waitForLoadState('networkidle');
+
+    // Results should update
+    await expect(page.locator('body')).toBeVisible();
   });
 
   test('User can filter recipes by category', async ({ page }) => {
@@ -312,14 +319,15 @@ test.describe('Recipe Search and Filtering', () => {
     const categoryFilter = page.locator('select[name*="category"], button').filter({ hasText: /category/i });
     const hasFilter = await categoryFilter.count();
 
-    if (hasFilter > 0) {
-      await categoryFilter.first().click();
+    // Skip test if category filter doesn't exist (filter feature may not be implemented)
+    test.skip(hasFilter === 0, 'No category filter found - filter feature may not be implemented yet');
 
-      // Wait for filter to apply
-      await page.waitForLoadState('networkidle');
+    await categoryFilter.first().click();
 
-      // Page should update with filtered results
-      await expect(page.locator('body')).toBeVisible();
-    }
+    // Wait for filter to apply
+    await page.waitForLoadState('networkidle');
+
+    // Page should update with filtered results
+    await expect(page.locator('body')).toBeVisible();
   });
 });
