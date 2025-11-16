@@ -41,12 +41,11 @@ test.describe('Recipe Viewing', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Click on first recipe link (if any exist)
+    // Click on first recipe link
     const firstRecipe = page.locator('a[href*="/recipe"]').first();
-    const recipeExists = await firstRecipe.count();
 
-    // Skip test if no recipes exist (data-dependent test)
-    test.skip(recipeExists === 0, 'No recipes available to test recipe details view');
+    // Should have at least one recipe visible
+    await expect(firstRecipe).toBeVisible({ timeout: 5000 });
 
     await firstRecipe.click();
     await page.waitForLoadState('networkidle');
@@ -121,17 +120,20 @@ test.describe('Recipe Creation', () => {
 
     // Look for "Add" button for ingredients
     const addIngredientBtn = page.locator('button').filter({ hasText: /add.*ingredient|add/i }).first();
-    const hasAddButton = await addIngredientBtn.count();
 
-    // Skip test if Add button doesn't exist (feature may not be implemented yet)
-    test.skip(hasAddButton === 0, 'Add ingredient button not found - dynamic ingredient feature may not be implemented');
+    // Button should exist
+    await expect(addIngredientBtn).toBeVisible({ timeout: 5000 });
 
     // Click to add ingredient field
     await addIngredientBtn.click();
 
     // Should add another ingredient field
     await page.waitForTimeout(500);
-    expect(true).toBe(true); // Just verify button click worked
+
+    // Verify additional ingredient field was added
+    const ingredientInputs = page.locator('input[name*="ingredient"]');
+    const count = await ingredientInputs.count();
+    expect(count).toBeGreaterThan(1);
   });
 });
 
@@ -148,23 +150,21 @@ test.describe('Recipe Management', () => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
-    // Click edit on first recipe if exists
+    // Click edit on first recipe
     const editButton = page.getByRole('link', { name: /edit/i }).or(page.getByRole('button', { name: /edit/i })).first();
-    const hasEditButton = await editButton.count();
 
-    // Skip test if no edit button exists (user may not have any recipes)
-    test.skip(hasEditButton === 0, 'No Edit button found - user may not have any recipes to edit');
+    // Should have edit button visible
+    await expect(editButton).toBeVisible({ timeout: 5000 });
 
     await editButton.click();
     await page.waitForLoadState('networkidle');
 
-    // Update title if field exists
+    // Update title field
     const titleField = page.locator('input[name="title"]');
-    if (await titleField.count() > 0) {
-      await titleField.fill('Updated Recipe Title E2E');
-    }
+    await expect(titleField).toBeVisible();
+    await titleField.fill('Updated Recipe Title E2E');
 
-    // Submit changes if submit button exists
+    // Submit changes
     await page.click('button[type="submit"]');
 
     // Should redirect back
@@ -182,12 +182,11 @@ test.describe('Recipe Management', () => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
-    // Look for delete button if recipes exist
+    // Look for delete button
     const deleteButton = page.getByRole('button', { name: /delete/i }).first();
-    const hasDeleteButton = await deleteButton.count();
 
-    // Skip test if no delete button exists (user may not have any recipes)
-    test.skip(hasDeleteButton === 0, 'No Delete button found - user may not have any recipes to delete');
+    // Should have delete button visible
+    await expect(deleteButton).toBeVisible({ timeout: 5000 });
 
     // Handle confirmation dialog if present
     page.on('dialog', (dialog) => dialog.accept());
@@ -234,10 +233,9 @@ test.describe('Admin Recipe Approval', () => {
 
     // Look for approve button
     const approveButton = page.getByRole('button', { name: /approve/i }).first();
-    const hasApproveButton = await approveButton.count();
 
-    // Skip test if no approve button exists (no pending recipes to approve)
-    test.skip(hasApproveButton === 0, 'No Approve button found - no pending recipes available');
+    // Should have approve button visible (requires pending recipes)
+    await expect(approveButton).toBeVisible({ timeout: 5000 });
 
     await approveButton.click();
 
@@ -261,10 +259,9 @@ test.describe('Admin Recipe Approval', () => {
 
     // Look for reject button
     const rejectButton = page.getByRole('button', { name: /reject/i }).first();
-    const hasRejectButton = await rejectButton.count();
 
-    // Skip test if no reject button exists (no pending recipes to reject)
-    test.skip(hasRejectButton === 0, 'No Reject button found - no pending recipes available');
+    // Should have reject button visible (requires pending recipes)
+    await expect(rejectButton).toBeVisible({ timeout: 5000 });
 
     await rejectButton.click();
 
@@ -290,10 +287,9 @@ test.describe('Recipe Search and Filtering', () => {
 
     // Look for search input
     const searchInput = page.locator('input[type="search"], input[placeholder*="search" i]');
-    const hasSearch = await searchInput.count();
 
-    // Skip test if search input doesn't exist (search feature may not be implemented)
-    test.skip(hasSearch === 0, 'No search input found - search feature may not be implemented yet');
+    // Search input should be visible
+    await expect(searchInput).toBeVisible({ timeout: 5000 });
 
     await searchInput.fill('pasta');
 
@@ -317,10 +313,9 @@ test.describe('Recipe Search and Filtering', () => {
 
     // Look for category filter
     const categoryFilter = page.locator('select[name*="category"], button').filter({ hasText: /category/i });
-    const hasFilter = await categoryFilter.count();
 
-    // Skip test if category filter doesn't exist (filter feature may not be implemented)
-    test.skip(hasFilter === 0, 'No category filter found - filter feature may not be implemented yet');
+    // Category filter should be visible
+    await expect(categoryFilter.first()).toBeVisible({ timeout: 5000 });
 
     await categoryFilter.first().click();
 
