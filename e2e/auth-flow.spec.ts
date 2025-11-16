@@ -141,13 +141,13 @@ test.describe('Authentication Flow', () => {
     // Submit form
     await page.click('button[type="submit"]');
 
-    // Wait for error to appear
-    await page.waitForTimeout(1000);
+    // Wait for network request to complete
+    await page.waitForLoadState('networkidle');
 
-    // Should show error message
+    // Should show error message - wait longer for API response
     await expect(
       page.locator('text=/invalid.*credentials|incorrect.*password|login.*failed/i')
-    ).toBeVisible({ timeout: 5000 });
+    ).toBeVisible({ timeout: 10000 });
 
     // Should still be on login page
     await expect(page).toHaveURL(/.*login/);

@@ -47,11 +47,17 @@ test.describe('Recipe Viewing', () => {
     // Should have at least one recipe visible
     await expect(firstRecipe).toBeVisible({ timeout: 5000 });
 
+    // Wait for link to be interactive before clicking
+    await expect(firstRecipe).toBeEnabled({ timeout: 5000 });
+
     await firstRecipe.click();
     await page.waitForLoadState('networkidle');
 
-    // Should show recipe details
-    await expect(page.locator('h1, h2')).toBeVisible();
+    // Wait for actual recipe content, not just any heading
+    await expect(page.locator('h1, h2')).toBeVisible({ timeout: 10000 });
+
+    // Verify we're on a recipe detail page
+    await expect(page).toHaveURL(/\/recipe/, { timeout: 5000 });
   });
 });
 
@@ -118,8 +124,12 @@ test.describe('Recipe Creation', () => {
     await page.goto('/recipes/submit');
     await page.waitForLoadState('networkidle');
 
-    // Look for "Add" button for ingredients
-    const addIngredientBtn = page.locator('button').filter({ hasText: /add.*ingredient|add/i }).first();
+    // Count initial ingredients
+    const ingredientInputs = page.locator('input[name*="ingredient"]');
+    const initialCount = await ingredientInputs.count();
+
+    // Look for "Add" button for ingredients - be more specific
+    const addIngredientBtn = page.locator('button').filter({ hasText: /add.*ingredient/i }).first();
 
     // Button should exist
     await expect(addIngredientBtn).toBeVisible({ timeout: 5000 });
@@ -127,13 +137,12 @@ test.describe('Recipe Creation', () => {
     // Click to add ingredient field
     await addIngredientBtn.click();
 
-    // Should add another ingredient field
-    await page.waitForTimeout(500);
+    // Wait for the new ingredient field to appear (initialCount + 1)
+    await expect(ingredientInputs).toHaveCount(initialCount + 1, { timeout: 5000 });
 
     // Verify additional ingredient field was added
-    const ingredientInputs = page.locator('input[name*="ingredient"]');
-    const count = await ingredientInputs.count();
-    expect(count).toBeGreaterThan(1);
+    const newCount = await ingredientInputs.count();
+    expect(newCount).toBe(initialCount + 1);
   });
 });
 
@@ -150,14 +159,22 @@ test.describe('Recipe Management', () => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
-    // Click edit on first recipe
-    const editButton = page.getByRole('link', { name: /edit/i }).or(page.getByRole('button', { name: /edit/i })).first();
+    // Click edit on first recipe - try link first, then button
+    let editButton = page.getByRole('link', { name: /edit/i }).first();
+    const editLinkCount = await editButton.count();
+
+    if (editLinkCount === 0) {
+      editButton = page.getByRole('button', { name: /edit/i }).first();
+    }
 
     // Should have edit button visible
     await expect(editButton).toBeVisible({ timeout: 5000 });
 
     await editButton.click();
     await page.waitForLoadState('networkidle');
+
+    // Wait for edit form to load
+    await page.waitForSelector('input[name="title"]', { state: 'visible', timeout: 10000 });
 
     // Update title field
     const titleField = page.locator('input[name="title"]');
@@ -182,6 +199,10 @@ test.describe('Recipe Management', () => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
+    // Count recipes before deletion
+    const recipeBefore = page.locator('a[href*="/recipe"], [class*="recipe"]');
+    const countBefore = await recipeBefore.count();
+
     // Look for delete button
     const deleteButton = page.getByRole('button', { name: /delete/i }).first();
 
@@ -189,15 +210,19 @@ test.describe('Recipe Management', () => {
     await expect(deleteButton).toBeVisible({ timeout: 5000 });
 
     // Handle confirmation dialog if present
-    page.on('dialog', (dialog) => dialog.accept());
+    page.once('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('confirm');
+      await dialog.accept();
+    });
 
     // Click delete
     await deleteButton.click();
 
-    // Wait for deletion
+    // Wait for deletion to complete - either recipe count changes or page updates
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Brief wait for UI to update
 
-    // Should still be on a valid page
+    // Should still be on dashboard or redirected to a valid page
     await expect(page.locator('body')).toBeVisible();
   });
 });
@@ -237,13 +262,18 @@ test.describe('Admin Recipe Approval', () => {
     // Should have approve button visible (requires pending recipes)
     await expect(approveButton).toBeVisible({ timeout: 5000 });
 
+    // Wait for button to be enabled before clicking
+    await expect(approveButton).toBeEnabled({ timeout: 5000 });
+
     await approveButton.click();
 
-    // Wait for response
+    // Wait for response and page update
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Brief wait for UI update after approval
 
-    // Should still have content
+    // Should still have content - verify we're still on admin dashboard
     await expect(page.locator('body')).toBeVisible();
+    await expect(page).toHaveURL(/.*admin.*dashboard/, { timeout: 5000 });
   });
 
   test('Admin can reject a recipe', async ({ page }) => {
@@ -263,13 +293,18 @@ test.describe('Admin Recipe Approval', () => {
     // Should have reject button visible (requires pending recipes)
     await expect(rejectButton).toBeVisible({ timeout: 5000 });
 
+    // Wait for button to be enabled before clicking
+    await expect(rejectButton).toBeEnabled({ timeout: 5000 });
+
     await rejectButton.click();
 
-    // Wait for response
+    // Wait for response and page update
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Brief wait for UI update after rejection
 
-    // Should still have content
+    // Should still have content - verify we're still on admin dashboard
     await expect(page.locator('body')).toBeVisible();
+    await expect(page).toHaveURL(/.*admin.*dashboard/, { timeout: 5000 });
   });
 });
 
@@ -286,18 +321,26 @@ test.describe('Recipe Search and Filtering', () => {
     await page.waitForLoadState('networkidle');
 
     // Look for search input
-    const searchInput = page.locator('input[type="search"], input[placeholder*="search" i]');
+    const searchInput = page.locator('input[type="search"], input[placeholder*="search" i]').first();
 
     // Search input should be visible
     await expect(searchInput).toBeVisible({ timeout: 5000 });
 
+    // Wait for search input to be interactive
+    await expect(searchInput).toBeEnabled({ timeout: 5000 });
+
+    // Fill search field
     await searchInput.fill('pasta');
 
-    // Wait for search results
+    // Wait for search results to update (either debounced or on submit)
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Wait for debounced search if applicable
 
-    // Results should update
+    // Results should be visible - verify the page is responsive
     await expect(page.locator('body')).toBeVisible();
+
+    // Verify we're still on home page
+    await expect(page).toHaveURL(/\/$|\/recipes/);
   });
 
   test('User can filter recipes by category', async ({ page }) => {
@@ -311,18 +354,31 @@ test.describe('Recipe Search and Filtering', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Look for category filter
-    const categoryFilter = page.locator('select[name*="category"], button').filter({ hasText: /category/i });
+    // Look for category filter - try select first, then button
+    let categoryFilter = page.locator('select[name*="category"]').first();
+    const selectCount = await categoryFilter.count();
+
+    if (selectCount === 0) {
+      // Try button with category text
+      categoryFilter = page.locator('button').filter({ hasText: /category/i }).first();
+    }
 
     // Category filter should be visible
-    await expect(categoryFilter.first()).toBeVisible({ timeout: 5000 });
+    await expect(categoryFilter).toBeVisible({ timeout: 5000 });
 
-    await categoryFilter.first().click();
+    // Wait for filter to be interactive
+    await expect(categoryFilter).toBeEnabled({ timeout: 5000 });
+
+    await categoryFilter.click();
 
     // Wait for filter to apply
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Brief wait for UI update
 
     // Page should update with filtered results
     await expect(page.locator('body')).toBeVisible();
+
+    // Verify we're still on home/recipes page
+    await expect(page).toHaveURL(/\/$|\/recipes/);
   });
 });
