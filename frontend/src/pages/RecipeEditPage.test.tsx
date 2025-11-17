@@ -126,9 +126,12 @@ describe('RecipeEditPage', () => {
     await waitFor(() => {
       expect(screen.getByLabelText(/Recipe Title/)).toBeInTheDocument();
     });
-    const titleInput = screen.getByLabelText(/Recipe Title/);
-    await user.clear(titleInput);
-    await user.type(titleInput, 'Updated Recipe Title');
+    const titleInput = screen.getByLabelText(/Recipe Title/) as HTMLInputElement;
+
+    // Select all and replace - more reliable than clear()
+    await user.tripleClick(titleInput);
+    await user.keyboard('Updated Recipe Title');
+
     expect(titleInput).toHaveValue('Updated Recipe Title');
   });
 
