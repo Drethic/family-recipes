@@ -56,7 +56,8 @@ export const AuthRestoration = ({ children }: AuthRestorationProps) => {
     };
 
     restoreAuth();
-  }, [dispatch, refresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   return <>{children}</>;
 };
