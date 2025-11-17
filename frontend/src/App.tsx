@@ -12,6 +12,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { RecipesPage } from './pages/RecipesPage';
 import { RecipeDetailPage } from './pages/RecipeDetailPage';
 import { RecipeEditPage } from './pages/RecipeEditPage';
+import { RecipeSubmitPage } from './pages/RecipeSubmitPage';
 import { MemberDashboard } from './pages/MemberDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { NotFound } from './pages/NotFound';
@@ -32,13 +33,16 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/recipes" element={<RecipesPage />} />
-            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
 
             {/* Member routes */}
             <Route element={<ProtectedRoute allowedRoles={[UserRole.MEMBER, UserRole.ADMIN]} />}>
               <Route path="/member/*" element={<MemberDashboard />} />
+              <Route path="/recipes/submit" element={<RecipeSubmitPage />} />
               <Route path="/recipes/:id/edit" element={<RecipeEditPage />} />
             </Route>
+
+            {/* Public recipe detail - MUST come after /recipes/submit */}
+            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
 
             {/* Admin routes */}
             <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
