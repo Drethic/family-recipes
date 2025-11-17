@@ -110,7 +110,7 @@ test.describe('Authentication Flow', () => {
     await page.waitForLoadState('networkidle');
 
     // Use test credentials (adjust based on your backend setup)
-    await page.fill('input[name="email"]', 'admin@example.com');
+    await page.fill('input[name="email"]', 'admin@recipes.com');
     await page.fill('input[name="password"]', 'admin123');
 
     // Submit login form
@@ -156,7 +156,7 @@ test.describe('Authentication Flow', () => {
     // First, login
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@example.com');
+    await page.fill('input[name="email"]', 'admin@recipes.com');
     await page.fill('input[name="password"]', 'admin123');
     await page.click('button[type="submit"]');
 
