@@ -13,6 +13,11 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Recipe Viewing', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('User can view recipe list', async ({ page }) => {
     // Login first (adjust credentials as needed)
     await page.goto('/login');
@@ -62,6 +67,11 @@ test.describe('Recipe Viewing', () => {
 });
 
 test.describe('Recipe Creation', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('User can create a new recipe', async ({ page }) => {
     // Login
     await page.goto('/login');
@@ -147,6 +157,11 @@ test.describe('Recipe Creation', () => {
 });
 
 test.describe('Recipe Management', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('User can edit their own recipe', async ({ page }) => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
@@ -228,6 +243,11 @@ test.describe('Recipe Management', () => {
 });
 
 test.describe('Admin Recipe Approval', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('Admin can view pending recipes', async ({ page }) => {
     // Login as admin
     await page.goto('/login');
@@ -309,6 +329,11 @@ test.describe('Admin Recipe Approval', () => {
 });
 
 test.describe('Recipe Search and Filtering', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('User can search for recipes', async ({ page }) => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');

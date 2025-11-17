@@ -12,6 +12,11 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Authentication Flow', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('User can navigate to login page', async ({ page }) => {
     // Navigate to home page
     await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });

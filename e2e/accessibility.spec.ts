@@ -12,6 +12,11 @@ import AxeBuilder from '@axe-core/playwright';
  */
 
 test.describe('Accessibility Tests', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('Home page should not have accessibility violations', async ({ page }) => {
     await page.goto('/');
 

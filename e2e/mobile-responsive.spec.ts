@@ -16,6 +16,11 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Mobile Responsive Design', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('Mobile navigation menu should work', async ({ page, isMobile }) => {
     await page.goto('/');
 
@@ -243,6 +248,11 @@ test.describe('Mobile Responsive Design', () => {
 });
 
 test.describe('Cross-Device Consistency', () => {
+  // Clear cookies before each test to ensure clean authentication state
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test('Logo should be visible on all devices', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
