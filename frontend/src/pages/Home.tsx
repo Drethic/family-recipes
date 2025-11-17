@@ -1,42 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '@/app/hooks';
+import { Header } from '@/components/layout/Header';
 
 export const Home = () => {
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Family Recipes</h1>
-          <nav className="flex gap-4">
-            {isAuthenticated ? (
-              <>
-                <span className="text-gray-700">Welcome, {user?.first_name}!</span>
-                {user?.role === 'admin' && (
-                  <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
-                    Admin Dashboard
-                  </Link>
-                )}
-                {(user?.role === 'member' || user?.role === 'admin') && (
-                  <Link to="/member/dashboard" className="text-primary-600 hover:text-primary-700">
-                    My Recipes
-                  </Link>
-                )}
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="text-primary-600 hover:text-primary-700">
-                  Login
-                </Link>
-                <Link to="/register" className="text-primary-600 hover:text-primary-700">
-                  Register
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
