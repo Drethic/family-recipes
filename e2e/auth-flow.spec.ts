@@ -14,8 +14,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Authentication Flow', () => {
   test('User can navigate to login page', async ({ page }) => {
     // Navigate to home page
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });
 
     // Wait for the header to be visible
     await page.waitForSelector('header', { state: 'visible' });
