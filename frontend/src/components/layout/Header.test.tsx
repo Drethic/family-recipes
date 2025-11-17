@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render, renderWithRouter } from '@/test/utils/test-utils';
@@ -84,6 +84,35 @@ describe('Header Component', () => {
       expect(screen.getByText('Login')).toBeInTheDocument();
       expect(screen.getByText('Register')).toBeInTheDocument();
     });
+  });
+
+  it('handles logout failure gracefully', async () => {
+    const user = userEvent.setup();
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const preloadedState = {
+      auth: {
+        user: mockUser,
+        token: 'error-token', // This triggers error in MSW handler
+        isAuthenticated: true,
+      },
+    };
+
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
+
+    const logoutButton = screen.getByText('Logout');
+    await user.click(logoutButton);
+
+    // Even on error, user should be logged out and redirected
+    await waitFor(() => {
+      expect(screen.getByText('Login')).toBeInTheDocument();
+      expect(screen.getByText('Register')).toBeInTheDocument();
+    });
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('navigates to recipes page when Browse Recipes is clicked', async () => {
