@@ -9,6 +9,13 @@ export const Header = () => {
   const navigate = useNavigate();
   const [logoutMutation] = useLogoutMutation();
 
+  // Debug logging for E2E test troubleshooting
+  console.log('[Header] Rendering with auth state:', {
+    isAuthenticated,
+    userEmail: user?.email,
+    userName: user?.name
+  });
+
   const handleLogout = async () => {
     try {
       await logoutMutation().unwrap();

@@ -26,8 +26,13 @@ export const AuthRestoration = ({ children }: AuthRestorationProps) => {
   useEffect(() => {
     const restoreAuth = async () => {
       try {
+        console.log('[AuthRestoration] Starting auth restoration...');
         // Try to refresh the access token using the httpOnly cookie
         const refreshResult = await refresh().unwrap();
+        console.log('[AuthRestoration] Refresh result:', {
+          hasData: !!refreshResult.data,
+          hasAccessToken: !!refreshResult.data?.accessToken
+        });
 
         if (refreshResult.data?.accessToken) {
           const accessToken = refreshResult.data.accessToken;
@@ -39,6 +44,10 @@ export const AuthRestoration = ({ children }: AuthRestorationProps) => {
           const meResult = await dispatch(
             authApi.endpoints.getMe.initiate()
           ).unwrap();
+          console.log('[AuthRestoration] User data fetched:', {
+            hasData: !!meResult.data,
+            userEmail: meResult.data?.email
+          });
 
           if (meResult.data) {
             // Set full credentials (user + token + isAuthenticated)
@@ -46,12 +55,14 @@ export const AuthRestoration = ({ children }: AuthRestorationProps) => {
               user: meResult.data,
               accessToken: accessToken,
             }));
+            console.log('[AuthRestoration] ✅ Auth restored successfully for:', meResult.data.email);
           }
         }
-      } catch (_error) {
+      } catch (error) {
         // No valid refresh token or error occurred
         // User stays logged out - this is expected for new/logged-out users
         // We don't dispatch logout() here to avoid clearing cookies unnecessarily
+        console.log('[AuthRestoration] ℹ️ No valid session to restore (this is normal for logged-out users)');
       }
     };
 
