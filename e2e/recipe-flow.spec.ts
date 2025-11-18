@@ -298,6 +298,28 @@ test.describe('Admin Recipe Approval', () => {
   });
 
   test('Admin can approve a recipe', async ({ page }) => {
+    // First, login as member and create a pending recipe
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
+    await page.fill('input[name="email"]', 'member@recipes.com');
+    await page.fill('input[name="password"]', 'member123');
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+
+    // Create a pending recipe
+    await page.goto('/recipes/submit');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('#title');
+    await page.fill('#title', 'Recipe to Approve');
+    await page.fill('#description', 'This recipe will be approved by admin');
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+
+    // Logout
+    await page.getByRole('button', { name: /logout/i }).click();
+    await page.waitForLoadState('networkidle');
+
+    // Now login as admin
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
     await page.fill('input[name="email"]', 'admin@recipes.com');
@@ -329,6 +351,28 @@ test.describe('Admin Recipe Approval', () => {
   });
 
   test('Admin can reject a recipe', async ({ page }) => {
+    // First, login as member and create a pending recipe
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
+    await page.fill('input[name="email"]', 'member@recipes.com');
+    await page.fill('input[name="password"]', 'member123');
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+
+    // Create a pending recipe
+    await page.goto('/recipes/submit');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('#title');
+    await page.fill('#title', 'Recipe to Reject');
+    await page.fill('#description', 'This recipe will be rejected by admin');
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState('networkidle');
+
+    // Logout
+    await page.getByRole('button', { name: /logout/i }).click();
+    await page.waitForLoadState('networkidle');
+
+    // Now login as admin
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
     await page.fill('input[name="email"]', 'admin@recipes.com');
@@ -419,14 +463,8 @@ test.describe('Recipe Search and Filtering', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Look for category filter - try select first, then button
-    let categoryFilter = page.locator('select[name*="category"]').first();
-    const selectCount = await categoryFilter.count();
-
-    if (selectCount === 0) {
-      // Try button with category text
-      categoryFilter = page.locator('button').filter({ hasText: /category/i }).first();
-    }
+    // Look for category filter select
+    const categoryFilter = page.locator('select[name="category"]').first();
 
     // Category filter should be visible
     await expect(categoryFilter).toBeVisible({ timeout: 5000 });
@@ -434,11 +472,19 @@ test.describe('Recipe Search and Filtering', () => {
     // Wait for filter to be interactive
     await expect(categoryFilter).toBeEnabled({ timeout: 5000 });
 
-    await categoryFilter.click();
+    // Get available options (skip the first "All Categories" option)
+    const options = await categoryFilter.locator('option').all();
+
+    if (options.length > 1) {
+      // Select the first actual category (not "All Categories")
+      const firstCategory = await options[1].getAttribute('value');
+      if (firstCategory) {
+        await categoryFilter.selectOption(firstCategory);
+      }
+    }
 
     // Wait for filter to apply
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Brief wait for UI update
+    await page.waitForTimeout(500); // Brief wait for client-side filtering
 
     // Page should update with filtered results
     await expect(page.locator('body')).toBeVisible();
