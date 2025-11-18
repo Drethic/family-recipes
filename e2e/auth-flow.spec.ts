@@ -64,8 +64,9 @@ test.describe('Authentication Flow', () => {
     const timestamp = Date.now();
     const testEmail = `test-user-${timestamp}@example.com`;
 
-    // Fill registration form
-    await page.fill('input[name="name"]', 'Test User');
+    // Fill registration form with correct field names
+    await page.fill('input[name="firstName"]', 'Test');
+    await page.fill('input[name="lastName"]', 'User');
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', 'SecurePassword123!');
     await page.fill('input[name="confirmPassword"]', 'SecurePassword123!');
@@ -100,8 +101,9 @@ test.describe('Authentication Flow', () => {
     await page.goto('/register');
     await page.waitForLoadState('networkidle');
 
-    // Fill form with mismatched passwords
-    await page.fill('input[name="name"]', 'Test User');
+    // Fill form with mismatched passwords and correct field names
+    await page.fill('input[name="firstName"]', 'Test');
+    await page.fill('input[name="lastName"]', 'User');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'Password123!');
     await page.fill('input[name="confirmPassword"]', 'DifferentPassword123!');
@@ -192,7 +194,7 @@ test.describe('Authentication Flow', () => {
   test('Protected routes redirect to login when not authenticated', async ({ page }) => {
     // Try to access a protected route without logging in
     // Don't navigate to home first - go directly to protected route
-    await page.goto('/dashboard');
+    await page.goto('/member');
     await page.waitForLoadState('networkidle');
 
     // Should redirect to login page

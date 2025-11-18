@@ -17,8 +17,16 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Mobile Responsive Design', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('Mobile navigation menu should work', async ({ page, isMobile }) => {
@@ -249,8 +257,16 @@ test.describe('Mobile Responsive Design', () => {
 
 test.describe('Cross-Device Consistency', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('Logo should be visible on all devices', async ({ page }) => {

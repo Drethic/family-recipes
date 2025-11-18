@@ -13,8 +13,16 @@ import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility Tests', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('Home page should not have accessibility violations', async ({ page }) => {

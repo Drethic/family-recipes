@@ -14,8 +14,16 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Recipe Viewing', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('User can view recipe list', async ({ page }) => {
@@ -68,8 +76,16 @@ test.describe('Recipe Viewing', () => {
 
 test.describe('Recipe Creation', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('User can create a new recipe', async ({ page }) => {
@@ -158,8 +174,16 @@ test.describe('Recipe Creation', () => {
 
 test.describe('Recipe Management', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('User can edit their own recipe', async ({ page }) => {
@@ -244,8 +268,16 @@ test.describe('Recipe Management', () => {
 
 test.describe('Admin Recipe Approval', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('Admin can view pending recipes', async ({ page }) => {
@@ -330,8 +362,16 @@ test.describe('Admin Recipe Approval', () => {
 
 test.describe('Recipe Search and Filtering', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('User can search for recipes', async ({ page }) => {
