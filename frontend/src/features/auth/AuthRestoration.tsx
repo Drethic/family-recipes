@@ -58,7 +58,7 @@ export const AuthRestoration = ({ children }: AuthRestorationProps) => {
             console.log('[AuthRestoration] ✅ Auth restored successfully for:', meResult.data.email);
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // No valid refresh token or error occurred
         // User stays logged out - this is expected for new/logged-out users
         // We don't dispatch logout() here to avoid clearing cookies unnecessarily

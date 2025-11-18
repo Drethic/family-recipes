@@ -13,7 +13,8 @@ export const Header = () => {
   console.log('[Header] Rendering with auth state:', {
     isAuthenticated,
     userEmail: user?.email,
-    userName: user?.name
+    userFirstName: user?.first_name,
+    userLastName: user?.last_name
   });
 
   const handleLogout = async () => {
