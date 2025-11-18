@@ -8,6 +8,7 @@ export const Register = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
   });
@@ -23,8 +24,16 @@ export const Register = () => {
     setError('');
     setSuccess(false);
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     try {
-      const result = await register(formData).unwrap();
+      // Don't send confirmPassword to the API - it's only for client-side validation
+      const { confirmPassword: _confirmPassword, ...registrationData } = formData;
+      const result = await register(registrationData).unwrap();
       if (result.data) {
         setSuccess(true);
         // Don't auto-login or redirect, show approval message
@@ -126,6 +135,20 @@ export const Register = () => {
                 required
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                value={formData.confirmPassword}
                 onChange={handleChange}
               />
             </div>
