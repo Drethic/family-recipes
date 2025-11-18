@@ -74,8 +74,14 @@ test.describe('Authentication Flow', () => {
     // Submit form
     await page.click('button[type="submit"]');
 
-    // Wait for success message
-    await page.waitForTimeout(2000);
+    // Wait for the registration API call to complete
+    await page.waitForResponse(response =>
+      response.url().includes('/api/auth/register') && response.status() === 201,
+      { timeout: 10000 }
+    );
+
+    // Give React time to update the UI
+    await page.waitForTimeout(500);
 
     // Should show success message about pending approval
     await expect(
@@ -131,8 +137,17 @@ test.describe('Authentication Flow', () => {
     // Submit login form
     await page.click('button[type="submit"]');
 
-    // Wait for navigation
+    // Wait for the login API call to complete
+    await page.waitForResponse(response =>
+      response.url().includes('/api/auth/login') && response.status() === 200,
+      { timeout: 10000 }
+    );
+
+    // Wait for navigation to complete
     await page.waitForLoadState('networkidle');
+
+    // Give React time to update the UI with the new auth state
+    await page.waitForTimeout(500);
 
     // Should redirect after successful login (either to dashboard or home)
     const url = page.url();
@@ -141,7 +156,7 @@ test.describe('Authentication Flow', () => {
     // Should show authenticated user UI
     await expect(
       page.getByRole('button', { name: /logout/i })
-    ).toBeVisible({ timeout: 5000 });
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('Login shows error for invalid credentials', async ({ page }) => {
@@ -175,17 +190,31 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[name="password"]', 'admin123');
     await page.click('button[type="submit"]');
 
+    // Wait for the login API call to complete
+    await page.waitForResponse(response =>
+      response.url().includes('/api/auth/login') && response.status() === 200,
+      { timeout: 10000 }
+    );
+
     // Wait for navigation after login
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
     // Wait for logout button to be visible
-    await expect(page.getByRole('button', { name: /logout/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: /logout/i })).toBeVisible({ timeout: 10000 });
 
     // Click logout button
     await page.getByRole('button', { name: /logout/i }).click();
 
+    // Wait for the logout API call to complete
+    await page.waitForResponse(response =>
+      response.url().includes('/api/auth/logout') && response.status() === 200,
+      { timeout: 10000 }
+    );
+
     // Wait for navigation
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
     // Should show login/register links again
     await expect(page.getByRole('link', { name: 'Login' })).toBeVisible({ timeout: 5000 });

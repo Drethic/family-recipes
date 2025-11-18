@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 /**
  * Recipe Management E2E Tests
@@ -11,6 +11,27 @@ import { test, expect } from '@playwright/test';
  * - Admin approval workflow
  * - Recipe search and filtering
  */
+
+/**
+ * Helper function to login and wait for auth state to be ready
+ */
+async function login(page: Page, email: string, password: string): Promise<void> {
+  await page.goto('/login');
+  await page.waitForLoadState('networkidle');
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await page.click('button[type="submit"]');
+
+  // Wait for the login API call to complete
+  await page.waitForResponse(response =>
+    response.url().includes('/api/auth/login') && response.status() === 200,
+    { timeout: 10000 }
+  );
+
+  // Wait for navigation and React to update UI
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+}
 
 test.describe('Recipe Viewing', () => {
   // Clear cookies before each test to ensure clean authentication state
@@ -28,12 +49,7 @@ test.describe('Recipe Viewing', () => {
 
   test('User can view recipe list', async ({ page }) => {
     // Login first (adjust credentials as needed)
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     // Navigate to recipes page or home
     await page.goto('/');
@@ -44,12 +60,7 @@ test.describe('Recipe Viewing', () => {
   });
 
   test('User can view recipe details', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -90,12 +101,7 @@ test.describe('Recipe Creation', () => {
 
   test('User can create a new recipe', async ({ page }) => {
     // Login
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     // Navigate to create recipe page
     await page.goto('/recipes/submit');
@@ -119,12 +125,7 @@ test.describe('Recipe Creation', () => {
   });
 
   test('Recipe creation validates required fields', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/recipes/submit');
     await page.waitForLoadState('networkidle');
@@ -140,12 +141,7 @@ test.describe('Recipe Creation', () => {
   });
 
   test('User can add multiple ingredients dynamically', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/recipes/submit');
     await page.waitForLoadState('networkidle');
@@ -187,12 +183,7 @@ test.describe('Recipe Management', () => {
   });
 
   test('User can edit their own recipe', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     // Go to user's dashboard
     await page.goto('/dashboard');
@@ -228,12 +219,7 @@ test.describe('Recipe Management', () => {
   });
 
   test('User can delete their own recipe', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
@@ -282,12 +268,7 @@ test.describe('Admin Recipe Approval', () => {
 
   test('Admin can view pending recipes', async ({ page }) => {
     // Login as admin
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     // Navigate to admin dashboard
     await page.goto('/admin/dashboard');
@@ -299,12 +280,7 @@ test.describe('Admin Recipe Approval', () => {
 
   test('Admin can approve a recipe', async ({ page }) => {
     // First, login as member and create a pending recipe
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'member@recipes.com');
-    await page.fill('input[name="password"]', 'member123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'member@recipes.com', 'member123');
 
     // Create a pending recipe
     await page.goto('/recipes/submit');
@@ -320,12 +296,7 @@ test.describe('Admin Recipe Approval', () => {
     await page.waitForLoadState('networkidle');
 
     // Now login as admin
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/admin/dashboard');
     await page.waitForLoadState('networkidle');
@@ -352,12 +323,7 @@ test.describe('Admin Recipe Approval', () => {
 
   test('Admin can reject a recipe', async ({ page }) => {
     // First, login as member and create a pending recipe
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'member@recipes.com');
-    await page.fill('input[name="password"]', 'member123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'member@recipes.com', 'member123');
 
     // Create a pending recipe
     await page.goto('/recipes/submit');
@@ -373,12 +339,7 @@ test.describe('Admin Recipe Approval', () => {
     await page.waitForLoadState('networkidle');
 
     // Now login as admin
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/admin/dashboard');
     await page.waitForLoadState('networkidle');
@@ -419,12 +380,7 @@ test.describe('Recipe Search and Filtering', () => {
   });
 
   test('User can search for recipes', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/recipes');
     await page.waitForLoadState('networkidle');
@@ -453,12 +409,7 @@ test.describe('Recipe Search and Filtering', () => {
   });
 
   test('User can filter recipes by category', async ({ page }) => {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="email"]', 'admin@recipes.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await login(page, 'admin@recipes.com', 'admin123');
 
     await page.goto('/recipes');
     await page.waitForLoadState('networkidle');
