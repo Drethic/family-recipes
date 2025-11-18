@@ -132,8 +132,23 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
-        run: npx playwright test --project="Desktop Chrome"
+      - name: Run E2E validation (single test with debug logs)
+        run: |
+          echo "🧪 Running quick E2E validation with debug output..."
+          npx playwright test \
+            --project="Desktop Chrome" \
+            --workers=1 \
+            --reporter=list \
+            --grep="User can navigate to login page" \
+            e2e/auth-flow.spec.ts || true
+          echo ""
+          echo "📊 Validation complete. Check logs above for debug output."
+        env:
+          BASE_URL: http://localhost:5173
+          CI: true
+
+      - name: Run full Playwright test suite
+        run: npx playwright test --project="Desktop Chrome" --workers=1
         env:
           BASE_URL: http://localhost:5173
           CI: true
