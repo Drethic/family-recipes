@@ -426,7 +426,7 @@ test.describe('Recipe Search and Filtering', () => {
     await page.click('button[type="submit"]');
     await page.waitForLoadState('networkidle');
 
-    await page.goto('/');
+    await page.goto('/recipes');
     await page.waitForLoadState('networkidle');
 
     // Look for search input
@@ -448,8 +448,8 @@ test.describe('Recipe Search and Filtering', () => {
     // Results should be visible - verify the page is responsive
     await expect(page.locator('body')).toBeVisible();
 
-    // Verify we're still on home page
-    await expect(page).toHaveURL(/\/$|\/recipes/);
+    // Verify we're still on recipes page
+    await expect(page).toHaveURL(/\/recipes/);
   });
 
   test('User can filter recipes by category', async ({ page }) => {
@@ -460,7 +460,7 @@ test.describe('Recipe Search and Filtering', () => {
     await page.click('button[type="submit"]');
     await page.waitForLoadState('networkidle');
 
-    await page.goto('/');
+    await page.goto('/recipes');
     await page.waitForLoadState('networkidle');
 
     // Look for category filter select
@@ -489,7 +489,7 @@ test.describe('Recipe Search and Filtering', () => {
     // Page should update with filtered results
     await expect(page.locator('body')).toBeVisible();
 
-    // Verify we're still on home/recipes page
-    await expect(page).toHaveURL(/\/$|\/recipes/);
+    // Verify we're still on recipes page
+    await expect(page).toHaveURL(/\/recipes/);
   });
 });
