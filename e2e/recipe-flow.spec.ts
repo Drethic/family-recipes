@@ -102,11 +102,11 @@ test.describe('Recipe Creation', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for form to be ready
-    await page.waitForSelector('input[name="title"]');
+    await page.waitForSelector('#title');
 
-    // Fill recipe form
-    await page.fill('input[name="title"]', 'E2E Test Recipe');
-    await page.fill('textarea[name="description"]', 'This is a test recipe created by E2E tests');
+    // Fill recipe form (using ID selectors since inputs don't have name attributes)
+    await page.fill('#title', 'E2E Test Recipe');
+    await page.fill('#description', 'This is a test recipe created by E2E tests');
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -150,8 +150,8 @@ test.describe('Recipe Creation', () => {
     await page.goto('/recipes/submit');
     await page.waitForLoadState('networkidle');
 
-    // Count initial ingredients
-    const ingredientInputs = page.locator('input[name*="ingredient"]');
+    // Count initial ingredient name inputs (using placeholder since inputs don't have name attributes)
+    const ingredientInputs = page.locator('input[placeholder="Ingredient name"]');
     const initialCount = await ingredientInputs.count();
 
     // Look for "Add" button for ingredients - be more specific
@@ -213,10 +213,10 @@ test.describe('Recipe Management', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for edit form to load
-    await page.waitForSelector('input[name="title"]', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('#title', { state: 'visible', timeout: 10000 });
 
     // Update title field
-    const titleField = page.locator('input[name="title"]');
+    const titleField = page.locator('#title');
     await expect(titleField).toBeVisible();
     await titleField.fill('Updated Recipe Title E2E');
 
