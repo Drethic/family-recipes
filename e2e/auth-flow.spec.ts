@@ -13,8 +13,16 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
   // Clear cookies before each test to ensure clean authentication state
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
+
+    // Capture console logs for debugging
+    page.on('console', (msg) => {
+      const text = msg.text();
+      if (text.includes('[AuthRestoration]') || text.includes('[Header]')) {
+        console.log(`[Browser Console] ${text}`);
+      }
+    });
   });
 
   test('User can navigate to login page', async ({ page }) => {
@@ -29,7 +37,7 @@ test.describe('Authentication Flow', () => {
 
     // Should be on login page
     await expect(page).toHaveURL(/.*login/);
-    await expect(page.locator('h1, h2')).toContainText(/login/i);
+    await expect(page.locator('h1, h2')).toContainText(/sign in/i);
   });
 
   test('User can navigate to register page', async ({ page }) => {
@@ -45,7 +53,7 @@ test.describe('Authentication Flow', () => {
 
     // Should be on register page
     await expect(page).toHaveURL(/.*register/);
-    await expect(page.locator('h1, h2')).toContainText(/register|sign up/i);
+    await expect(page.locator('h1, h2')).toContainText(/create.*account/i);
   });
 
   test('User can register a new account', async ({ page }) => {
