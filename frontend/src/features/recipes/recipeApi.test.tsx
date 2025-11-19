@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { setupStore } from '@/test/utils/test-utils';
+import { UserRole, ThemePreference, RecipeDifficulty } from '@/types';
 import {
   recipeApi,
   useGetRecipesQuery,
@@ -12,6 +13,9 @@ import {
   useDeleteRecipeMutation,
   useApproveRecipeMutation,
   useRejectRecipeMutation,
+  useUploadRecipeImageMutation,
+  useUpdateRecipeImageMutation,
+  useDeleteRecipeImageMutation,
 } from './recipeApi';
 
 describe('recipeApi', () => {
@@ -45,6 +49,18 @@ describe('recipeApi', () => {
 
   it('defines rejectRecipe endpoint', () => {
     expect(recipeApi.endpoints.rejectRecipe).toBeDefined();
+  });
+
+  it('defines uploadRecipeImage endpoint', () => {
+    expect(recipeApi.endpoints.uploadRecipeImage).toBeDefined();
+  });
+
+  it('defines updateRecipeImage endpoint', () => {
+    expect(recipeApi.endpoints.updateRecipeImage).toBeDefined();
+  });
+
+  it('defines deleteRecipeImage endpoint', () => {
+    expect(recipeApi.endpoints.deleteRecipeImage).toBeDefined();
   });
 
   it('exports useGetRecipesQuery hook', () => {
@@ -85,6 +101,21 @@ describe('recipeApi', () => {
   it('exports useRejectRecipeMutation hook', () => {
     expect(useRejectRecipeMutation).toBeDefined();
     expect(typeof useRejectRecipeMutation).toBe('function');
+  });
+
+  it('exports useUploadRecipeImageMutation hook', () => {
+    expect(useUploadRecipeImageMutation).toBeDefined();
+    expect(typeof useUploadRecipeImageMutation).toBe('function');
+  });
+
+  it('exports useUpdateRecipeImageMutation hook', () => {
+    expect(useUpdateRecipeImageMutation).toBeDefined();
+    expect(typeof useUpdateRecipeImageMutation).toBe('function');
+  });
+
+  it('exports useDeleteRecipeImageMutation hook', () => {
+    expect(useDeleteRecipeImageMutation).toBeDefined();
+    expect(typeof useDeleteRecipeImageMutation).toBe('function');
   });
 
   it('has correct reducer path', () => {
@@ -158,12 +189,11 @@ describe('recipeApi', () => {
             email: 'test@example.com',
             first_name: 'Test',
             last_name: 'User',
-            role: 'member' as const,
+            role: UserRole.MEMBER,
             is_approved: true,
-            approved_at: new Date().toISOString(),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            theme_preference: 'light' as const,
+            theme_preference: ThemePreference.LIGHT,
           },
           token: 'test-token',
           isAuthenticated: true,
@@ -175,14 +205,23 @@ describe('recipeApi', () => {
 
       const { result } = renderHook(() => useGetMyRecipesQuery(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError).toBe(true);
-      });
+      // Wait for loading to finish
+      await waitFor(
+        () => {
+          expect(result.current.isLoading).toBe(false);
+        },
+        { timeout: 3000 }
+      );
 
-      if (result.current.isSuccess) {
-        expect(result.current.data?.success).toBe(true);
-        expect(result.current.data?.data).toBeDefined();
+      // Log error details if the query failed for debugging
+      if (result.current.isError) {
+        console.error('Query error:', result.current.error);
       }
+
+      // Check for success (if it errors, the test will fail here which is correct)
+      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.data?.success).toBe(true);
+      expect(result.current.data?.data).toBeDefined();
     });
   });
 
@@ -203,7 +242,7 @@ describe('recipeApi', () => {
           prep_time: 20,
           cook_time: 40,
           servings: 6,
-          difficulty: 'medium' as const,
+          difficulty: RecipeDifficulty.MEDIUM,
           ingredients: [{ name: 'Flour', quantity: '2', unit: 'cups', order_index: 0 }],
           instructions: [{ step_number: 1, description: 'Mix' }],
           category_ids: ['1'],
@@ -276,4 +315,53 @@ describe('recipeApi', () => {
       });
     });
   });
+
+  describe('useUploadRecipeImageMutation', () => {
+    it('hook renders and returns mutation tuple', () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUploadRecipeImageMutation(), { wrapper });
+
+      expect(result.current).toBeDefined();
+      expect(Array.isArray(result.current)).toBe(true);
+      expect(result.current).toHaveLength(2);
+      expect(typeof result.current[0]).toBe('function');
+    });
+  });
+
+  describe('useUpdateRecipeImageMutation', () => {
+    it('hook renders and returns mutation tuple', () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useUpdateRecipeImageMutation(), { wrapper });
+
+      expect(result.current).toBeDefined();
+      expect(Array.isArray(result.current)).toBe(true);
+      expect(result.current).toHaveLength(2);
+      expect(typeof result.current[0]).toBe('function');
+    });
+  });
+
+  describe('useDeleteRecipeImageMutation', () => {
+    it('hook renders and returns mutation tuple', () => {
+      const store = setupStore();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Provider store={store}>{children}</Provider>
+      );
+
+      const { result } = renderHook(() => useDeleteRecipeImageMutation(), { wrapper });
+
+      expect(result.current).toBeDefined();
+      expect(Array.isArray(result.current)).toBe(true);
+      expect(result.current).toHaveLength(2);
+      expect(typeof result.current[0]).toBe('function');
+    });
+  });
+
 });

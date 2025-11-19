@@ -23,8 +23,8 @@ export class AuthService {
     };
 
     return jwt.sign(payload, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn,
-    });
+      expiresIn: config.jwtExpiresIn as string,
+    } as jwt.SignOptions);
   }
 
   static generateRefreshToken(user: User): string {
@@ -35,8 +35,8 @@ export class AuthService {
     };
 
     return jwt.sign(payload, config.jwtRefreshSecret, {
-      expiresIn: config.jwtRefreshExpiresIn,
-    });
+      expiresIn: config.jwtRefreshExpiresIn as string,
+    } as jwt.SignOptions);
   }
 
   static verifyRefreshToken(token: string): TokenPayload {

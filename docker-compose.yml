@@ -12,7 +12,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U recipeuser"]
+      test: ["CMD-SHELL", "pg_isready -U recipeuser -d recipedb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,6 +35,7 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       PORT: 5000
       CORS_ORIGIN: http://localhost:5173
+      AUTH_RATE_LIMIT_MAX_REQUESTS: 300
     ports:
       - "5000:5000"
     volumes:
@@ -68,10 +69,33 @@ services:
       - recipe-network
     command: npm run dev
 
+  # MinIO - S3-compatible object storage for local development
+  minio:
+    image: minio/minio:latest
+    container_name: recipe-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    volumes:
+      - minio_data:/data
+    networks:
+      - recipe-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
 volumes:
   postgres_data:
     driver: local
   backend_uploads:
+    driver: local
+  minio_data:
     driver: local
 
 networks:

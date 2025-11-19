@@ -7,7 +7,7 @@ import {
   useUpdatePasswordMutation,
 } from '@/features/profile/profileApi';
 import { ThemePreference } from '@/types';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/hooks/useTheme';
 
 export const ProfilePage = () => {
   const dispatch = useAppDispatch();

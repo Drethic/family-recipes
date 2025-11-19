@@ -1,8 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetRecipeByIdQuery, useUpdateRecipeMutation } from '@/features/recipes/recipeApi';
+import {
+  useGetRecipeByIdQuery,
+  useUpdateRecipeMutation,
+  useUploadRecipeImageMutation,
+  useDeleteRecipeImageMutation,
+} from '@/features/recipes/recipeApi';
 import { useGetCategoriesQuery } from '@/features/categories/categoryApi';
-import { RecipeDifficulty } from '@/types';
+import { RecipeDifficulty, RecipeImage } from '@/types';
+import { ImageUpload } from '@/components/recipe/ImageUpload';
+import { StepImageUpload } from '@/components/recipe/StepImageUpload';
+
+interface ImageFile {
+  file: File;
+  preview: string;
+  altText: string;
+  isPrimary: boolean;
+}
+
+interface StepImageFile {
+  file: File;
+  preview: string;
+  altText: string;
+}
 
 export const RecipeEditPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,6 +30,8 @@ export const RecipeEditPage = () => {
   const { data: recipeData, isLoading: recipeLoading } = useGetRecipeByIdQuery(id!);
   const { data: categoriesData } = useGetCategoriesQuery();
   const [updateRecipe, { isLoading }] = useUpdateRecipeMutation();
+  const [uploadImage] = useUploadRecipeImageMutation();
+  const [deleteImage] = useDeleteRecipeImageMutation();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -31,6 +53,14 @@ export const RecipeEditPage = () => {
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [error, setError] = useState('');
+
+  // Image state
+  const [existingProductImages, setExistingProductImages] = useState<RecipeImage[]>([]);
+  const [existingStepImages, setExistingStepImages] = useState<Map<number, RecipeImage>>(new Map());
+  const [newProductImages, setNewProductImages] = useState<ImageFile[]>([]);
+  const [newStepImages, setNewStepImages] = useState<Map<number, StepImageFile | null>>(new Map());
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Populate form when recipe data loads
   useEffect(() => {
@@ -64,6 +94,25 @@ export const RecipeEditPage = () => {
 
       if (recipe.categories) {
         setSelectedCategories(recipe.categories.map((cat) => cat.id));
+      }
+
+      // Load existing images
+      if (recipe.images && recipe.images.length > 0) {
+        const productImages = recipe.images
+          .filter((img) => !img.instruction_id)
+          .sort((a, b) => a.order_index - b.order_index);
+        setExistingProductImages(productImages);
+
+        const stepImageMap = new Map<number, RecipeImage>();
+        recipe.images
+          .filter((img) => img.instruction_id)
+          .forEach((img) => {
+            const instruction = recipe.instructions?.find((inst) => inst.id === img.instruction_id);
+            if (instruction) {
+              stepImageMap.set(instruction.step_number, img);
+            }
+          });
+        setExistingStepImages(stepImageMap);
       }
     }
   }, [recipeData]);
@@ -110,6 +159,60 @@ export const RecipeEditPage = () => {
     );
   };
 
+  const handleDeleteExistingImage = (imageId: string) => {
+    setImagesToDelete([...imagesToDelete, imageId]);
+    setExistingProductImages(existingProductImages.filter((img) => img.id !== imageId));
+    // Also remove from step images if it's there
+    const newStepImages = new Map(existingStepImages);
+    for (const [stepNumber, img] of existingStepImages.entries()) {
+      if (img.id === imageId) {
+        newStepImages.delete(stepNumber);
+        break;
+      }
+    }
+    setExistingStepImages(newStepImages);
+  };
+
+  const uploadAllImages = async (recipeId: string, instructionIds: string[]) => {
+    const uploadPromises: Promise<unknown>[] = [];
+
+    // Upload new product images
+    newProductImages.forEach((image, index) => {
+      const formData = new FormData();
+      formData.append('image', image.file);
+      formData.append('altText', image.altText);
+      formData.append('isPrimary', (index === 0 && existingProductImages.length === 0).toString());
+      formData.append('orderIndex', (existingProductImages.length + index).toString());
+
+      const promise = uploadImage({
+        recipeId,
+        file: image.file,
+        altText: image.altText,
+        isPrimary: index === 0 && existingProductImages.length === 0,
+        orderIndex: existingProductImages.length + index,
+      });
+      uploadPromises.push(promise);
+    });
+
+    // Upload new step images
+    newStepImages.forEach((stepImage, stepNumber) => {
+      if (stepImage) {
+        const instructionId = instructionIds[stepNumber - 1];
+        if (instructionId) {
+          const promise = uploadImage({
+            recipeId,
+            file: stepImage.file,
+            altText: stepImage.altText,
+            instructionId,
+          });
+          uploadPromises.push(promise);
+        }
+      }
+    });
+
+    await Promise.all(uploadPromises);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -135,7 +238,7 @@ export const RecipeEditPage = () => {
     }
 
     try {
-      await updateRecipe({
+      const result = await updateRecipe({
         id: id!,
         data: {
           ...formData,
@@ -157,10 +260,25 @@ export const RecipeEditPage = () => {
         },
       }).unwrap();
 
+      // Delete marked images
+      if (imagesToDelete.length > 0) {
+        await Promise.all(imagesToDelete.map((imageId) => deleteImage({ imageId, recipeId: id! })));
+      }
+
+      // Upload new images
+      const hasNewImages = newProductImages.length > 0 || Array.from(newStepImages.values()).some((img) => img !== null);
+      if (hasNewImages && result.data) {
+        setUploadingImages(true);
+        const instructionIds = result.data.instructions?.map((inst) => inst.id).filter((id): id is string => id !== undefined) || [];
+        await uploadAllImages(id!, instructionIds);
+        setUploadingImages(false);
+      }
+
       navigate(`/recipes/${id}`);
     } catch (err) {
       const error = err as { data?: { message?: string } };
       setError(error?.data?.message || 'Failed to update recipe');
+      setUploadingImages(false);
     }
   };
 
@@ -274,6 +392,57 @@ export const RecipeEditPage = () => {
           </div>
         </div>
 
+        {/* Recipe Images */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium text-gray-900">Recipe Images</h2>
+
+          {/* Existing Product Images */}
+          {existingProductImages.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Current Images</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {existingProductImages.map((image) => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.url}
+                      alt={image.alt_text || 'Recipe image'}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    {image.is_primary && (
+                      <span className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                        Thumbnail
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteExistingImage(image.id)}
+                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Delete image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* New Product Images Upload */}
+          {existingProductImages.length + newProductImages.length < 3 && (
+            <ImageUpload
+              maxImages={3 - existingProductImages.length}
+              onImagesChange={setNewProductImages}
+              existingImages={newProductImages}
+            />
+          )}
+
+          {existingProductImages.length + newProductImages.length >= 3 && (
+            <p className="text-sm text-gray-500">Maximum 3 images reached</p>
+          )}
+        </div>
+
         {/* Ingredients */}
         <div>
           <div className="flex justify-between items-center mb-4">
@@ -338,25 +507,63 @@ export const RecipeEditPage = () => {
           </div>
           <div className="space-y-3">
             {instructions.map((instruction, index) => (
-              <div key={index} className="flex gap-2">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-medium">
-                  {index + 1}
+              <div key={index} className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-medium">
+                    {index + 1}
+                  </div>
+                  <textarea
+                    placeholder="Describe this step..."
+                    rows={2}
+                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={instruction.description}
+                    onChange={(e) => handleInstructionChange(index, e.target.value)}
+                  />
+                  {instructions.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveInstruction(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
-                <textarea
-                  placeholder="Describe this step..."
-                  rows={2}
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  value={instruction.description}
-                  onChange={(e) => handleInstructionChange(index, e.target.value)}
-                />
-                {instructions.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveInstruction(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
+
+                {/* Existing step image */}
+                {existingStepImages.has(instruction.step_number) && (
+                  <div className="ml-10 relative group inline-block">
+                    <img
+                      src={existingStepImages.get(instruction.step_number)!.url}
+                      alt={existingStepImages.get(instruction.step_number)!.alt_text || `Step ${instruction.step_number} image`}
+                      className="w-32 h-32 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteExistingImage(existingStepImages.get(instruction.step_number)!.id)}
+                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Delete step image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
+                {/* New step image upload */}
+                {!existingStepImages.has(instruction.step_number) && (
+                  <div className="ml-10">
+                    <StepImageUpload
+                      stepNumber={instruction.step_number}
+                      onImageChange={(image) => {
+                        const updated = new Map(newStepImages);
+                        updated.set(instruction.step_number, image);
+                        setNewStepImages(updated);
+                      }}
+                      existingImage={newStepImages.get(instruction.step_number) || null}
+                    />
+                  </div>
                 )}
               </div>
             ))}
@@ -402,10 +609,10 @@ export const RecipeEditPage = () => {
         <div className="flex gap-4">
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || uploadingImages}
             className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
           >
-            {isLoading ? 'Updating...' : 'Update Recipe'}
+            {uploadingImages ? 'Uploading images...' : isLoading ? 'Updating...' : 'Update Recipe'}
           </button>
           <button
             type="button"

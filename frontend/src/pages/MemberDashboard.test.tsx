@@ -1,25 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '@/test/utils/test-utils';
+import { render, renderWithRouter } from '@/test/utils/test-utils';
 import { MemberDashboard } from './MemberDashboard';
 import { mockUser } from '@/test/mocks/mockData';
 import { UserRole } from '@/types';
 
-const mockNavigate = vi.fn();
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
-
 describe('MemberDashboard', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-  });
 
   const preloadedState = {
     auth: {
@@ -181,26 +168,46 @@ describe('MemberDashboard', () => {
     expect(screen.getByText('Profile Settings')).toBeInTheDocument();
   });
 
-  it('renders back to home link', () => {
-    render(<MemberDashboard />, { preloadedState });
+  it('navigates to home when "Back to Home" is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ preloadedState, initialEntries: ['/member'] });
 
+    // Click Back to Home link
     const homeLink = screen.getByText('Back to Home');
-    expect(homeLink).toBeInTheDocument();
-    expect(homeLink.closest('a')).toHaveAttribute('href', '/');
+    await user.click(homeLink);
+
+    // Verify navigation to home page
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Welcome to Our Family Recipe Collection', level: 2 })).toBeInTheDocument();
+    });
   });
 
-  it('navigation links have correct hrefs', () => {
-    render(<MemberDashboard />, { preloadedState });
+  it('navigates to Submit Recipe when sidebar link is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ preloadedState, initialEntries: ['/member'] });
 
-    const dashboardLink = screen.getAllByText('Dashboard')[0].closest('a');
-    const recipesLink = screen.getAllByText('My Recipes')[0].closest('a');
-    const submitLink = screen.getByText('Submit Recipe').closest('a');
-    const profileLink = screen.getByText('Profile Settings').closest('a');
+    // Click Submit Recipe in sidebar
+    const submitLink = screen.getByText('Submit Recipe');
+    await user.click(submitLink);
 
-    expect(dashboardLink).toHaveAttribute('href', '/member/dashboard');
-    expect(recipesLink).toHaveAttribute('href', '/member/my-recipes');
-    expect(submitLink).toHaveAttribute('href', '/member/submit');
-    expect(profileLink).toHaveAttribute('href', '/member/profile');
+    // Verify Submit Recipe page loads
+    await waitFor(() => {
+      expect(screen.getByText('Submit a New Recipe')).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to Profile when sidebar link is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ preloadedState, initialEntries: ['/member'] });
+
+    // Click Profile Settings in sidebar
+    const profileLink = screen.getByText('Profile Settings');
+    await user.click(profileLink);
+
+    // Verify Profile page loads
+    await waitFor(() => {
+      expect(screen.getByText('Profile Information')).toBeInTheDocument();
+    });
   });
 
   it('renders main content area', () => {
@@ -255,11 +262,17 @@ describe('MemberDashboard', () => {
           success: true,
           data: [mockRecipe]
         });
+      }),
+      http.get(`${API_URL}/recipes/${mockRecipe.id}`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: mockRecipe
+        });
       })
     );
 
     const user = userEvent.setup();
-    render(<MemberDashboard />, { preloadedState });
+    renderWithRouter({ preloadedState, initialEntries: ['/member'] });
 
     await waitFor(() => {
       expect(screen.getByText(mockRecipe.title)).toBeInTheDocument();
@@ -268,7 +281,11 @@ describe('MemberDashboard', () => {
     const viewButtons = screen.getAllByText('View');
     await user.click(viewButtons[0]);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/recipes/${mockRecipe.id}`);
+    // Verify navigation to recipe detail page
+    await waitFor(() => {
+      expect(screen.getByText('Ingredients')).toBeInTheDocument();
+      expect(screen.getByText('Instructions')).toBeInTheDocument();
+    });
   });
 
   it('navigates to edit page when Edit button is clicked', async () => {
@@ -283,11 +300,17 @@ describe('MemberDashboard', () => {
           success: true,
           data: [mockRecipe]
         });
+      }),
+      http.get(`${API_URL}/recipes/${mockRecipe.id}`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: mockRecipe
+        });
       })
     );
 
     const user = userEvent.setup();
-    render(<MemberDashboard />, { preloadedState });
+    renderWithRouter({ preloadedState, initialEntries: ['/member'] });
 
     await waitFor(() => {
       expect(screen.getByText(mockRecipe.title)).toBeInTheDocument();
@@ -296,6 +319,9 @@ describe('MemberDashboard', () => {
     const editButtons = screen.getAllByText('Edit');
     await user.click(editButtons[0]);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/member/edit/${mockRecipe.id}`);
+    // Verify navigation to edit page - check for Update button
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Update Recipe' })).toBeInTheDocument();
+    });
   });
 });

@@ -23,6 +23,7 @@ describe('Register Component', () => {
     expect(screen.getByLabelText('Last Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
   });
 
@@ -34,16 +35,19 @@ describe('Register Component', () => {
     const lastNameInput = screen.getByLabelText('Last Name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
+    const confirmPasswordInput = screen.getByLabelText('Confirm Password');
 
     await user.type(firstNameInput, 'John');
     await user.type(lastNameInput, 'Doe');
     await user.type(emailInput, 'john@example.com');
     await user.type(passwordInput, 'password123');
+    await user.type(confirmPasswordInput, 'password123');
 
     expect(firstNameInput).toHaveValue('John');
     expect(lastNameInput).toHaveValue('Doe');
     expect(emailInput).toHaveValue('john@example.com');
     expect(passwordInput).toHaveValue('password123');
+    expect(confirmPasswordInput).toHaveValue('password123');
   });
 
   it('successfully registers a new user and shows approval message', async () => {
@@ -54,6 +58,7 @@ describe('Register Component', () => {
     await user.type(screen.getByLabelText('Last Name'), 'Doe');
     await user.type(screen.getByLabelText('Email address'), 'newuser@example.com');
     await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.type(screen.getByLabelText('Confirm Password'), 'password123');
 
     await user.click(screen.getByRole('button', { name: /register/i }));
 
@@ -73,6 +78,7 @@ describe('Register Component', () => {
     await user.type(screen.getByLabelText('Last Name'), 'Doe');
     await user.type(screen.getByLabelText('Email address'), 'existing@example.com');
     await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.type(screen.getByLabelText('Confirm Password'), 'password123');
 
     await user.click(screen.getByRole('button', { name: /register/i }));
 
@@ -89,6 +95,7 @@ describe('Register Component', () => {
     await user.type(screen.getByLabelText('Last Name'), 'Doe');
     await user.type(screen.getByLabelText('Email address'), 'newuser@example.com');
     await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.type(screen.getByLabelText('Confirm Password'), 'password123');
 
     const submitButton = screen.getByRole('button', { name: /register/i });
     const clickPromise = user.click(submitButton);
@@ -116,6 +123,7 @@ describe('Register Component', () => {
     await user.type(screen.getByLabelText('Last Name'), 'Doe');
     await user.type(screen.getByLabelText('Email address'), 'newuser@example.com');
     await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.type(screen.getByLabelText('Confirm Password'), 'password123');
 
     await user.click(screen.getByRole('button', { name: /register/i }));
 
@@ -124,5 +132,42 @@ describe('Register Component', () => {
       expect(returnLink).toBeInTheDocument();
       expect(returnLink).toHaveAttribute('href', '/login');
     });
+  });
+
+  it('displays error when passwords do not match', async () => {
+    const user = userEvent.setup();
+    render(<Register />);
+
+    await user.type(screen.getByLabelText('First Name'), 'John');
+    await user.type(screen.getByLabelText('Last Name'), 'Doe');
+    await user.type(screen.getByLabelText('Email address'), 'test@example.com');
+    await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.type(screen.getByLabelText('Confirm Password'), 'differentPassword');
+
+    await user.click(screen.getByRole('button', { name: /register/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+    });
+  });
+
+  it('does not submit form when passwords do not match', async () => {
+    const user = userEvent.setup();
+    render(<Register />);
+
+    await user.type(screen.getByLabelText('First Name'), 'John');
+    await user.type(screen.getByLabelText('Last Name'), 'Doe');
+    await user.type(screen.getByLabelText('Email address'), 'test@example.com');
+    await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.type(screen.getByLabelText('Confirm Password'), 'wrongPassword');
+
+    await user.click(screen.getByRole('button', { name: /register/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+    });
+
+    // Should not show success message
+    expect(screen.queryByText('Registration successful!')).not.toBeInTheDocument();
   });
 });

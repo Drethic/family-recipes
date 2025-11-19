@@ -1,23 +1,24 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt';
+import { UserRole, ThemePreference } from '../types';
 
 export const mockUser = async (overrides: Record<string, unknown> = {}) => {
   const password = overrides.password || 'password123';
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password as string, 10);
+  const finalPasswordHash = (overrides.password_hash as string) || passwordHash;
 
   return {
     id: faker.string.uuid(),
     email: faker.internet.email(),
     first_name: faker.person.firstName(),
     last_name: faker.person.lastName(),
-    role: 'member',
+    role: UserRole.MEMBER,
     is_approved: true,
-    password_hash: passwordHash,
+    theme_preference: ThemePreference.SYSTEM,
+    password_hash: finalPasswordHash,
     created_at: new Date(),
     updated_at: new Date(),
     ...overrides,
-    // Don't override password_hash if explicitly provided
-    password_hash: overrides.password_hash || passwordHash,
   };
 };
 

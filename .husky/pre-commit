@@ -1,0 +1,95 @@
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Track if any checks fail
+FAILED=0
+
+# Frontend checks
+echo "📦 Frontend: Running ESLint..."
+cd frontend
+if ! npm run lint; then
+  echo "❌ Frontend: ESLint failed"
+  FAILED=1
+else
+  echo "✅ Frontend: ESLint passed"
+fi
+echo ""
+
+echo "🔷 Frontend: Running TypeScript type check..."
+if ! npm run type-check; then
+  echo "❌ Frontend: Type check failed"
+  FAILED=1
+else
+  echo "✅ Frontend: Type check passed"
+fi
+echo ""
+
+echo "🧪 Frontend: Running tests with coverage..."
+if ! npm run test:coverage; then
+  echo "❌ Frontend: Tests or coverage failed"
+  FAILED=1
+else
+  echo "✅ Frontend: Tests and coverage passed"
+fi
+echo ""
+
+# Backend checks
+cd ../backend
+echo "📦 Backend: Running ESLint..."
+if ! npm run lint; then
+  echo "❌ Backend: ESLint failed"
+  FAILED=1
+else
+  echo "✅ Backend: ESLint passed"
+fi
+echo ""
+
+echo "🔷 Backend: Running TypeScript type check..."
+if ! npm run type-check; then
+  echo "❌ Backend: Type check failed"
+  FAILED=1
+else
+  echo "✅ Backend: Type check passed"
+fi
+echo ""
+
+echo "🧪 Backend: Running tests with coverage..."
+if ! npm run test:coverage; then
+  echo "❌ Backend: Tests or coverage failed"
+  FAILED=1
+else
+  echo "✅ Backend: Tests and coverage passed"
+fi
+echo ""
+
+# Return to root
+cd ..
+
+# E2E tests (can be skipped with SKIP_E2E=1 for faster local commits)
+if [ "$SKIP_E2E" = "1" ]; then
+  echo "⏭️  E2E tests skipped (SKIP_E2E=1)"
+  echo "⚠️  WARNING: E2E tests will still run in CI and must pass"
+  echo ""
+else
+  echo "🎭 Running E2E tests (this may take 20+ minutes)..."
+  echo "💡 Tip: Use 'SKIP_E2E=1 git commit' to skip E2E tests locally"
+  echo ""
+  if ! npm run test:e2e; then
+    echo "❌ E2E tests failed"
+    FAILED=1
+  else
+    echo "✅ E2E tests passed"
+  fi
+  echo ""
+fi
+
+# Check if any step failed
+if [ $FAILED -eq 1 ]; then
+  echo "❌ Pre-commit checks failed. Please fix the issues before committing."
+  echo ""
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+echo ""
+exit 0

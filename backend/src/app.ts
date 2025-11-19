@@ -42,8 +42,8 @@ app.use('/api/', limiter);
 
 // Stricter rate limiting for auth routes
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  windowMs: config.authRateLimitWindowMs,
+  max: config.authRateLimitMaxRequests,
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -66,8 +66,12 @@ if (config.nodeEnv === 'development') {
   app.use(morgan('combined'));
 }
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Serve static files for local storage (only if using local storage provider)
+if (config.storageProvider === 'local') {
+  app.use('/uploads', express.static(config.uploadDir));
+}
+
+app.get('/health', (_, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 

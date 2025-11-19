@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { setupStore } from '@/test/utils/test-utils';
+import { UserRole, ThemePreference } from '@/types';
 import {
   profileApi,
   useUpdateProfileMutation,
@@ -59,7 +60,7 @@ describe('profileApi', () => {
     it('updates profile successfully with auth token', async () => {
       const store = setupStore({
         auth: {
-          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: 'member', status: 'approved', theme_preference: 'system', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: UserRole.MEMBER, is_approved: true, theme_preference: ThemePreference.SYSTEM, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
           token: 'test-token-123',
           isAuthenticated: true,
         },
@@ -100,7 +101,7 @@ describe('profileApi', () => {
       await act(async () => {
         try {
           await result.current[0](updateData).unwrap();
-        } catch (error) {
+        } catch (_error) {
           // May fail due to lack of auth
         }
       });
@@ -115,7 +116,7 @@ describe('profileApi', () => {
     it('updates theme successfully with auth token', async () => {
       const store = setupStore({
         auth: {
-          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: 'member', status: 'approved', theme_preference: 'system', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: UserRole.MEMBER, is_approved: true, theme_preference: ThemePreference.SYSTEM, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
           token: 'test-token-123',
           isAuthenticated: true,
         },
@@ -126,7 +127,7 @@ describe('profileApi', () => {
 
       const { result } = renderHook(() => useUpdateThemeMutation(), { wrapper });
 
-      const updateData = { id: '1', themePreference: 'dark' as const };
+      const updateData = { id: '1', themePreference: ThemePreference.DARK };
 
       await act(async () => {
         await result.current[0](updateData).unwrap();
@@ -142,7 +143,7 @@ describe('profileApi', () => {
     it('updates password successfully with auth token', async () => {
       const store = setupStore({
         auth: {
-          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: 'member', status: 'approved', theme_preference: 'system', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          user: { id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User', role: UserRole.MEMBER, is_approved: true, theme_preference: ThemePreference.SYSTEM, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
           token: 'test-token-123',
           isAuthenticated: true,
         },

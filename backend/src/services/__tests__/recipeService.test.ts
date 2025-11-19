@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RecipeService } from '../recipeService';
 import db from '../../config/database';
-import { UserRole, RecipeStatus, RecipeDifficulty } from '../../types';
+import uploadService from '../uploadService';
+import { UserRole, RecipeStatus } from '../../types';
 
 vi.mock('../../config/database');
 
@@ -748,6 +749,42 @@ describe('RecipeService', () => {
       expect(mockQueryChain.del).toHaveBeenCalled();
       expect(mockQueryChain.insert).toHaveBeenCalled();
     });
+
+    it('should update servings, difficulty, and isPrivate if provided', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'member-123' };
+
+      const mockQueryChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+        update: vi.fn().mockResolvedValue(1),
+      };
+
+      const mockTransaction = vi.fn().mockReturnValue(mockQueryChain);
+
+      vi.mocked(db.transaction).mockImplementation(async (callback) => {
+        return callback(mockTransaction as never);
+      });
+
+      vi.spyOn(RecipeService, 'getById').mockResolvedValue({
+        ...mockRecipe,
+        servings: 6,
+        difficulty: 'hard',
+        is_private: true,
+      } as never);
+
+      await RecipeService.update(
+        'recipe-1',
+        {
+          servings: 6,
+          difficulty: 'hard',
+          isPrivate: true,
+        },
+        'member-123',
+        UserRole.MEMBER
+      );
+
+      expect(mockQueryChain.update).toHaveBeenCalled();
+    });
   });
 
   describe('delete', () => {
@@ -759,17 +796,58 @@ describe('RecipeService', () => {
         first: vi.fn().mockResolvedValue(mockRecipe),
       };
 
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       const mockDeleteChain = {
         where: vi.fn().mockReturnThis(),
         del: vi.fn().mockResolvedValue(1),
       };
 
       vi.mocked(db).mockReturnValueOnce(mockWhereChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockImagesChain as never);
       vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
 
       const result = await RecipeService.delete('recipe-1', 'member-123', UserRole.MEMBER);
 
       expect(result).toBe(true);
+    });
+
+    it('should delete recipe with images', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'member-123' };
+      const mockImages = [
+        { id: 'img-1', url: '/uploads/img1.jpg' },
+        { id: 'img-2', url: '/uploads/img2.jpg' },
+      ];
+
+      const mockWhereChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue(mockImages),
+      };
+
+      const mockDeleteChain = {
+        where: vi.fn().mockReturnThis(),
+        del: vi.fn().mockResolvedValue(1),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockWhereChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockImagesChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
+
+      vi.spyOn(uploadService, 'deleteMultipleImages').mockResolvedValue(undefined);
+
+      const result = await RecipeService.delete('recipe-1', 'member-123', UserRole.MEMBER);
+
+      expect(result).toBe(true);
+      expect(uploadService.deleteMultipleImages).toHaveBeenCalledWith([
+        '/uploads/img1.jpg',
+        '/uploads/img2.jpg',
+      ]);
     });
 
     it('should allow admin to delete any recipe', async () => {
@@ -780,12 +858,17 @@ describe('RecipeService', () => {
         first: vi.fn().mockResolvedValue(mockRecipe),
       };
 
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       const mockDeleteChain = {
         where: vi.fn().mockReturnThis(),
         del: vi.fn().mockResolvedValue(1),
       };
 
       vi.mocked(db).mockReturnValueOnce(mockWhereChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockImagesChain as never);
       vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
 
       const result = await RecipeService.delete('recipe-1', 'admin-123', UserRole.ADMIN);
@@ -886,6 +969,647 @@ describe('RecipeService', () => {
       const result = await RecipeService.getUserRecipes('user-123');
 
       expect(result).toHaveLength(2);
+    });
+  });
+
+  describe('addImage', () => {
+    it('should add image to recipe successfully', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+      const mockImage = {
+        id: 'img-1',
+        recipe_id: 'recipe-1',
+        url: '/uploads/test.jpg',
+        alt_text: 'Test image',
+        is_primary: false,
+        order_index: 0,
+        instruction_id: null,
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockCountChain = {
+        where: vi.fn().mockReturnThis(),
+        whereNull: vi.fn().mockReturnThis(),
+        count: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ count: '1' }),
+      };
+
+      const mockInsertChain = {
+        insert: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([mockImage]),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockCountChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
+
+      const result = await RecipeService.addImage(
+        'recipe-1',
+        '/uploads/test.jpg',
+        'Test image',
+        false,
+        0,
+        null,
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(result).toEqual(mockImage);
+      expect(mockInsertChain.insert).toHaveBeenCalled();
+    });
+
+    it('should throw error when recipe not found', async () => {
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+      };
+
+      vi.mocked(db).mockReturnValue(mockRecipeChain as never);
+
+      await expect(
+        RecipeService.addImage(
+          'nonexistent',
+          '/uploads/test.jpg',
+          'Test',
+          false,
+          0,
+          null,
+          'user-123',
+          UserRole.MEMBER
+        )
+      ).rejects.toThrow('Recipe not found');
+    });
+
+    it('should throw error when non-owner tries to add image', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'other-user' };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      vi.mocked(db).mockReturnValue(mockRecipeChain as never);
+
+      await expect(
+        RecipeService.addImage(
+          'recipe-1',
+          '/uploads/test.jpg',
+          'Test',
+          false,
+          0,
+          null,
+          'user-123',
+          UserRole.MEMBER
+        )
+      ).rejects.toThrow('You do not have permission to add images to this recipe');
+    });
+
+    it('should allow admin to add image to any recipe', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'other-user' };
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1' };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockCountChain = {
+        where: vi.fn().mockReturnThis(),
+        whereNull: vi.fn().mockReturnThis(),
+        count: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ count: '0' }),
+      };
+
+      const mockInsertChain = {
+        insert: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([mockImage]),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockCountChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
+
+      const result = await RecipeService.addImage(
+        'recipe-1',
+        '/uploads/test.jpg',
+        'Test',
+        false,
+        0,
+        null,
+        'admin-123',
+        UserRole.ADMIN
+      );
+
+      expect(result).toBeDefined();
+    });
+
+    it('should unset other primary images when adding primary image', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+      const mockImage = { id: 'img-1', is_primary: true };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockUpdateChain = {
+        where: vi.fn().mockReturnThis(),
+        whereNull: vi.fn().mockReturnThis(),
+        update: vi.fn().mockResolvedValue(1),
+      };
+
+      const mockCountChain = {
+        where: vi.fn().mockReturnThis(),
+        whereNull: vi.fn().mockReturnThis(),
+        count: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ count: '0' }),
+      };
+
+      const mockInsertChain = {
+        insert: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([mockImage]),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockCountChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
+
+      await RecipeService.addImage(
+        'recipe-1',
+        '/uploads/test.jpg',
+        'Test',
+        true,
+        0,
+        null,
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(mockUpdateChain.update).toHaveBeenCalledWith({ is_primary: false });
+    });
+
+    it('should throw error when max images limit reached', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockCountChain = {
+        where: vi.fn().mockReturnThis(),
+        whereNull: vi.fn().mockReturnThis(),
+        count: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ count: '3' }),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockCountChain as never);
+
+      await expect(
+        RecipeService.addImage(
+          'recipe-1',
+          '/uploads/test.jpg',
+          'Test',
+          false,
+          0,
+          null,
+          'user-123',
+          UserRole.MEMBER
+        )
+      ).rejects.toThrow('Maximum of 3 final product images allowed per recipe');
+    });
+
+    it('should allow step image when instruction exists', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+      const mockImage = { id: 'img-1', instruction_id: 'inst-1' };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockStepImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+      };
+
+      const mockInsertChain = {
+        insert: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([mockImage]),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockStepImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockInsertChain as never);
+
+      const result = await RecipeService.addImage(
+        'recipe-1',
+        '/uploads/step.jpg',
+        'Step image',
+        false,
+        0,
+        'inst-1',
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(result.instruction_id).toBe('inst-1');
+    });
+
+    it('should throw error when instruction already has image', async () => {
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+      const mockExistingImage = { id: 'img-1', instruction_id: 'inst-1' };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockStepImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockExistingImage),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockStepImageChain as never);
+
+      await expect(
+        RecipeService.addImage(
+          'recipe-1',
+          '/uploads/step.jpg',
+          'Step',
+          false,
+          0,
+          'inst-1',
+          'user-123',
+          UserRole.MEMBER
+        )
+      ).rejects.toThrow('This instruction step already has an image');
+    });
+  });
+
+  describe('updateImage', () => {
+    it('should update image successfully', async () => {
+      const mockImage = {
+        id: 'img-1',
+        recipe_id: 'recipe-1',
+        instruction_id: null,
+      };
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockUpdateChain = {
+        where: vi.fn().mockReturnThis(),
+        update: vi.fn().mockResolvedValue(1),
+      };
+
+      const mockFinalChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ ...mockImage, alt_text: 'Updated' }),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockFinalChain as never);
+
+      const result = await RecipeService.updateImage(
+        'img-1',
+        { altText: 'Updated' },
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(result?.alt_text).toBe('Updated');
+    });
+
+    it('should return null when image not found', async () => {
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+      };
+
+      vi.mocked(db).mockReturnValue(mockImageChain as never);
+
+      const result = await RecipeService.updateImage(
+        'nonexistent',
+        { altText: 'Test' },
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should throw error when non-owner tries to update', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1' };
+      const mockRecipe = { id: 'recipe-1', author_id: 'other-user' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+
+      await expect(
+        RecipeService.updateImage('img-1', { altText: 'Test' }, 'user-123', UserRole.MEMBER)
+      ).rejects.toThrow('You do not have permission to update this image');
+    });
+
+    it('should unset other primary images when setting as primary', async () => {
+      const mockImage = {
+        id: 'img-1',
+        recipe_id: 'recipe-1',
+        instruction_id: null,
+      };
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockUnsetChain = {
+        where: vi.fn().mockReturnThis(),
+        whereNull: vi.fn().mockReturnThis(),
+        update: vi.fn().mockResolvedValue(1),
+      };
+
+      const mockUpdateChain = {
+        where: vi.fn().mockReturnThis(),
+        update: vi.fn().mockResolvedValue(1),
+      };
+
+      const mockFinalChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ ...mockImage, is_primary: true }),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockUnsetChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockFinalChain as never);
+
+      await RecipeService.updateImage(
+        'img-1',
+        { isPrimary: true },
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(mockUnsetChain.update).toHaveBeenCalledWith({ is_primary: false });
+    });
+
+    it('should update orderIndex when provided', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1', order_index: 0 };
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockUpdateChain = {
+        where: vi.fn().mockReturnThis(),
+        update: vi.fn().mockResolvedValue(1),
+      };
+
+      const mockFinalChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({ ...mockImage, order_index: 2 }),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockUpdateChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockFinalChain as never);
+
+      const result = await RecipeService.updateImage(
+        'img-1',
+        { orderIndex: 2 },
+        'user-123',
+        UserRole.MEMBER
+      );
+
+      expect(result?.order_index).toBe(2);
+    });
+
+    it('should throw error when recipe not found', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+
+      await expect(
+        RecipeService.updateImage('img-1', { altText: 'Test' }, 'user-123', UserRole.MEMBER)
+      ).rejects.toThrow('Recipe not found');
+    });
+  });
+
+  describe('deleteImage', () => {
+    it('should delete image successfully', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1', url: '/uploads/test.jpg' };
+      const mockRecipe = { id: 'recipe-1', author_id: 'user-123' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockDeleteChain = {
+        where: vi.fn().mockReturnThis(),
+        del: vi.fn().mockResolvedValue(1),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
+
+      // Mock uploadService.deleteImage
+      vi.spyOn(uploadService, 'deleteImage').mockResolvedValue(undefined);
+
+      const result = await RecipeService.deleteImage('img-1', 'user-123', UserRole.MEMBER);
+
+      expect(result).toBe(true);
+      expect(uploadService.deleteImage).toHaveBeenCalledWith('/uploads/test.jpg');
+      expect(mockDeleteChain.del).toHaveBeenCalled();
+    });
+
+    it('should return false when image not found', async () => {
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+      };
+
+      vi.mocked(db).mockReturnValue(mockImageChain as never);
+
+      const result = await RecipeService.deleteImage('nonexistent', 'user-123', UserRole.MEMBER);
+
+      expect(result).toBe(false);
+    });
+
+    it('should throw error when non-owner tries to delete', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1', url: '/uploads/test.jpg' };
+      const mockRecipe = { id: 'recipe-1', author_id: 'other-user' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+
+      await expect(
+        RecipeService.deleteImage('img-1', 'user-123', UserRole.MEMBER)
+      ).rejects.toThrow('You do not have permission to delete this image');
+    });
+
+    it('should allow admin to delete any image', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1', url: '/uploads/test.jpg' };
+      const mockRecipe = { id: 'recipe-1', author_id: 'other-user' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockRecipe),
+      };
+
+      const mockDeleteChain = {
+        where: vi.fn().mockReturnThis(),
+        del: vi.fn().mockResolvedValue(1),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
+
+      vi.spyOn(uploadService, 'deleteImage').mockResolvedValue(undefined);
+
+      const result = await RecipeService.deleteImage('img-1', 'admin-123', UserRole.ADMIN);
+
+      expect(result).toBe(true);
+    });
+
+    it('should throw error when recipe not found', async () => {
+      const mockImage = { id: 'img-1', recipe_id: 'recipe-1', url: '/uploads/test.jpg' };
+
+      const mockImageChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(mockImage),
+      };
+
+      const mockRecipeChain = {
+        where: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImageChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockRecipeChain as never);
+
+      await expect(
+        RecipeService.deleteImage('img-1', 'user-123', UserRole.MEMBER)
+      ).rejects.toThrow('Recipe not found');
+    });
+  });
+
+  describe('deleteRecipeImages', () => {
+    it('should delete all recipe images', async () => {
+      const mockImages = [
+        { id: 'img-1', url: '/uploads/img1.jpg' },
+        { id: 'img-2', url: '/uploads/img2.jpg' },
+      ];
+
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue(mockImages),
+      };
+
+      const mockDeleteChain = {
+        where: vi.fn().mockReturnThis(),
+        del: vi.fn().mockResolvedValue(2),
+      };
+
+      vi.mocked(db).mockReturnValueOnce(mockImagesChain as never);
+      vi.mocked(db).mockReturnValueOnce(mockDeleteChain as never);
+
+      vi.spyOn(uploadService, 'deleteMultipleImages').mockResolvedValue(undefined);
+
+      await RecipeService.deleteRecipeImages('recipe-1');
+
+      expect(uploadService.deleteMultipleImages).toHaveBeenCalledWith([
+        '/uploads/img1.jpg',
+        '/uploads/img2.jpg',
+      ]);
+      expect(mockDeleteChain.del).toHaveBeenCalled();
+    });
+
+    it('should handle recipe with no images', async () => {
+      const mockImagesChain = {
+        where: vi.fn().mockResolvedValue([]),
+      };
+
+      vi.mocked(db).mockReturnValue(mockImagesChain as never);
+
+      await RecipeService.deleteRecipeImages('recipe-1');
+
+      // Should complete without errors
+      expect(mockImagesChain.where).toHaveBeenCalledWith('recipe_id', 'recipe-1');
     });
   });
 });

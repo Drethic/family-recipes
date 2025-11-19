@@ -1,24 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '@/test/utils/test-utils';
+import { render, renderWithRouter } from '@/test/utils/test-utils';
 import { AdminDashboard } from './AdminDashboard';
 import { mockAdmin } from '@/test/mocks/mockData';
 
-const mockNavigate = vi.fn();
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
-
 describe('AdminDashboard', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-  });
 
   const preloadedState = {
     auth: {
@@ -68,24 +55,32 @@ describe('AdminDashboard', () => {
     expect(screen.getByText('User Management')).toBeInTheDocument();
   });
 
-  it('renders back to home link', () => {
-    render(<AdminDashboard />, { preloadedState });
+  it('navigates to home when "Back to Home" is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ preloadedState, initialEntries: ['/admin'] });
 
+    // Click Back to Home link
     const homeLink = screen.getByText('Back to Home');
-    expect(homeLink).toBeInTheDocument();
-    expect(homeLink.closest('a')).toHaveAttribute('href', '/');
+    await user.click(homeLink);
+
+    // Verify navigation to home page
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Welcome to Our Family Recipe Collection', level: 2 })).toBeInTheDocument();
+    });
   });
 
-  it('navigation links have correct hrefs', () => {
-    render(<AdminDashboard />, { preloadedState });
+  it('navigates to User Management when sidebar link is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ preloadedState, initialEntries: ['/admin'] });
 
-    const dashboardLink = screen.getAllByText('Dashboard')[0].closest('a');
-    const pendingLink = screen.getByText('Pending Recipes').closest('a');
-    const usersLink = screen.getByText('User Management').closest('a');
+    // Click User Management in sidebar
+    const usersLink = screen.getByText('User Management');
+    await user.click(usersLink);
 
-    expect(dashboardLink).toHaveAttribute('href', '/admin/dashboard');
-    expect(pendingLink).toHaveAttribute('href', '/admin/recipes/pending');
-    expect(usersLink).toHaveAttribute('href', '/admin/users');
+    // Verify User Management page loads
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'User Management' })).toBeInTheDocument();
+    });
   });
 
   it('renders main content area', () => {
@@ -134,7 +129,6 @@ describe('AdminDashboard', () => {
   it('displays pending recipe with author information', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -145,7 +139,6 @@ describe('AdminDashboard', () => {
   it('renders view button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -159,7 +152,6 @@ describe('AdminDashboard', () => {
   it('renders edit button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -173,7 +165,6 @@ describe('AdminDashboard', () => {
   it('renders approve button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -187,7 +178,6 @@ describe('AdminDashboard', () => {
   it('renders reject button for pending recipes', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -201,7 +191,6 @@ describe('AdminDashboard', () => {
   it('View button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -215,7 +204,6 @@ describe('AdminDashboard', () => {
   it('Edit button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -229,7 +217,6 @@ describe('AdminDashboard', () => {
   it('Approve button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -243,7 +230,6 @@ describe('AdminDashboard', () => {
   it('Reject button is clickable', async () => {
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -258,7 +244,6 @@ describe('AdminDashboard', () => {
     const user = userEvent.setup();
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -280,7 +265,6 @@ describe('AdminDashboard', () => {
     const user = userEvent.setup();
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     await waitFor(() => {
@@ -299,11 +283,22 @@ describe('AdminDashboard', () => {
   });
 
   it('navigates to recipe detail when View button is clicked', async () => {
+    const { http, HttpResponse } = await import('msw');
+    const { server } = await import('@/test/mocks/server');
+    const { API_URL } = await import('@/utils/constants');
+    const { mockPendingRecipe } = await import('@/test/mocks/mockData');
+
+    server.use(
+      http.get(`${API_URL}/recipes/${mockPendingRecipe.id}`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: mockPendingRecipe
+        });
+      })
+    );
+
     const user = userEvent.setup();
-    render(<AdminDashboard />, {
-      preloadedState,
-      initialRoute: '/admin/dashboard'
-    });
+    renderWithRouter({ preloadedState, initialEntries: ['/admin'] });
 
     await waitFor(() => {
       expect(screen.getByText('Pending Recipe')).toBeInTheDocument();
@@ -312,15 +307,30 @@ describe('AdminDashboard', () => {
     const viewButtons = screen.getAllByText('View');
     await user.click(viewButtons[0]);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/recipes/2');
+    // Verify navigation to recipe detail page
+    await waitFor(() => {
+      expect(screen.getByText('Ingredients')).toBeInTheDocument();
+      expect(screen.getByText('Instructions')).toBeInTheDocument();
+    });
   });
 
   it('navigates to edit page when Edit button is clicked', async () => {
+    const { http, HttpResponse } = await import('msw');
+    const { server } = await import('@/test/mocks/server');
+    const { API_URL } = await import('@/utils/constants');
+    const { mockPendingRecipe } = await import('@/test/mocks/mockData');
+
+    server.use(
+      http.get(`${API_URL}/recipes/${mockPendingRecipe.id}`, () => {
+        return HttpResponse.json({
+          success: true,
+          data: mockPendingRecipe
+        });
+      })
+    );
+
     const user = userEvent.setup();
-    render(<AdminDashboard />, {
-      preloadedState,
-      initialRoute: '/admin/dashboard'
-    });
+    renderWithRouter({ preloadedState, initialEntries: ['/admin'] });
 
     await waitFor(() => {
       expect(screen.getByText('Pending Recipe')).toBeInTheDocument();
@@ -329,7 +339,10 @@ describe('AdminDashboard', () => {
     const editButtons = screen.getAllByText('Edit');
     await user.click(editButtons[0]);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/admin/edit/2');
+    // Verify navigation to edit page
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Update Recipe' })).toBeInTheDocument();
+    });
   });
 
   it('handles null recipes data in API response', async () => {
@@ -351,12 +364,12 @@ describe('AdminDashboard', () => {
             },
           });
         }
+        return HttpResponse.json({ success: true, data: { recipes: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } } });
       })
     );
 
     render(<AdminDashboard />, {
       preloadedState,
-      initialRoute: '/admin/dashboard'
     });
 
     // When recipes is null, the fallback || [] creates an empty array

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Response } from 'express';
 import { AuthController } from '../authController';
 import { AuthService } from '../../services/authService';
-import { AuthRequest, UserRole } from '../../types';
+import { AuthRequest, UserRole, ThemePreference } from '../../types';
 
 vi.mock('../../services/authService');
 
@@ -29,10 +29,10 @@ describe('AuthController', () => {
     clearCookieMock = vi.fn();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
-      cookie: cookieMock,
-      clearCookie: clearCookieMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
+      cookie: cookieMock as unknown as Response['cookie'],
+      clearCookie: clearCookieMock as unknown as Response['clearCookie'],
     };
   });
 
@@ -45,6 +45,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: false,
         created_at: new Date(),
         updated_at: new Date(),
@@ -64,6 +65,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: false,
         created_at: new Date(),
         updated_at: new Date(),
@@ -108,6 +110,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: false,
         created_at: new Date(),
         updated_at: new Date(),
@@ -168,6 +171,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -185,6 +189,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -225,6 +230,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -289,6 +295,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -397,6 +404,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -415,6 +423,7 @@ describe('AuthController', () => {
         first_name: 'John',
         last_name: 'Doe',
         role: UserRole.MEMBER,
+        theme_preference: ThemePreference.SYSTEM,
         is_approved: true,
         created_at: new Date(),
         updated_at: new Date(),

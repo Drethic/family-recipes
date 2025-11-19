@@ -101,6 +101,75 @@ rm -rf .claude/temp/*
 2. Is this project source code? → Use appropriate `src/` directory
 3. Is this documentation? → Use `.claude/` or project root
 
+### 6. Pre-Commit Hooks - MANDATORY ENFORCEMENT
+**CRITICAL**: This project uses Husky pre-commit hooks to enforce code quality. **ALL** commits must pass these checks.
+
+**Pre-Commit Checks (Automatic on Every Commit):**
+- ✅ Frontend: ESLint (0 errors, 0 warnings)
+- ✅ Frontend: TypeScript type-check (0 errors)
+- ✅ Frontend: Unit tests with coverage (≥90% all categories)
+- ✅ Backend: ESLint (0 errors, 0 warnings)
+- ✅ Backend: TypeScript type-check (0 errors)
+- ✅ Backend: Unit tests with coverage (≥90% all categories)
+- ✅ **E2E Tests: ALL tests must pass (Playwright - takes 20+ minutes)**
+
+**IMPORTANT: E2E Test Enforcement**
+- E2E tests run by default in pre-commit hooks (takes 20+ minutes)
+- E2E tests can be skipped locally with `SKIP_E2E=1 git commit`
+- E2E tests **ALWAYS** run in CI and must pass before merging
+- E2E test files: `e2e/` directory (Playwright tests)
+- To run E2E tests manually: `npm run test:e2e`
+
+**Skipping E2E Tests Locally:**
+- Use `SKIP_E2E=1 git commit` to skip E2E tests in pre-commit for faster iteration
+- Frontend/backend unit tests and coverage checks CANNOT be skipped
+- E2E tests will still run in CI - this only skips the local pre-commit check
+- Use this for rapid development, but ensure E2E tests pass before pushing
+
+**CRITICAL: NO test.skip() in E2E Test Files**
+- NEVER use `test.skip()` or conditional skipping inside E2E test files
+- Tests must run on ALL device types (desktop, mobile, tablet)
+- Use conditional assertions if needed, but tests must always execute
+- Skipping tests in files gives false confidence - not allowed
+
+**STRICTLY FORBIDDEN:**
+```bash
+# ❌ NEVER USE THIS - ABSOLUTELY PROHIBITED
+git commit --no-verify
+
+# ❌ NEVER USE THIS - ABSOLUTELY PROHIBITED
+git commit -n
+```
+
+**Why `--no-verify` is Prohibited:**
+- Bypasses critical quality checks including E2E tests
+- Can introduce breaking changes to the codebase
+- Violates the project's quality standards
+- Defeats the purpose of automated testing
+- Can cause CI/CD pipeline failures
+- E2E test failures WILL block PRs in CI
+
+**If Pre-Commit Checks Fail:**
+1. **Fix the errors** - Do not bypass them
+2. Run checks manually:
+   - `npm run lint` (frontend and backend)
+   - `npm run type-check` (frontend and backend)
+   - `npm run test:coverage` (frontend and backend)
+   - `npm run test:e2e` (E2E tests - all devices)
+3. Ensure ALL tests pass before committing
+4. If stuck, ask for help - never bypass the hooks
+
+**Hook Installation:**
+- Hooks are automatically installed via `npm install` (prepare script)
+- Located in `.husky/pre-commit`
+- See `.husky/README.md` for documentation
+
+**Exception Handling:**
+There are **NO EXCEPTIONS** to this rule. If you believe there is a legitimate reason to bypass pre-commit hooks, you must:
+1. Document the reason thoroughly
+2. Get explicit approval from the project owner
+3. Fix the bypassed issues in the immediate next commit
+
 ## Current Status
 
 ### Frontend - ✅ COMPLETE (All Files 90%+)

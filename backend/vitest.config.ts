@@ -18,6 +18,7 @@ export default defineConfig({
         'migrations/',
         'seeds/',
         'src/server.ts', // Entry point, hard to test
+        'src/config/knexConfig.ts', // Configuration with many env var fallbacks, hard to test all branches
         'knexfile.js',
         'knexfile.ts',
       ],

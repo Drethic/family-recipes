@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { Request } from 'express';
 import { validationResult } from 'express-validator';
 import { createRecipeValidator, updateRecipeValidator } from '../recipeValidators';
@@ -765,7 +765,7 @@ describe('Recipe Validators', () => {
 
       it('should pass for missing categoryIds (optional)', async () => {
         const data = getValidRecipeData();
-        delete (data as Partial<typeof data>).categoryIds;
+        delete (data as Record<string, unknown>).categoryIds;
         mockReq.body = data;
 
         for (const validator of createRecipeValidator) {

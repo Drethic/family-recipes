@@ -4,8 +4,11 @@
   "description": "A full-stack family recipe management system with role-based access control, recipe submissions, and admin approval workflow.",
   "main": "index.js",
   "scripts": {
+    "prepare": "husky",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:e2e": "playwright test",
+    "test:e2e:validate": "playwright test --project=\"Desktop Chrome\" --workers=1 --reporter=list --grep=\"User can navigate to login page\" e2e/auth-flow.spec.ts",
+    "test:e2e:sequential": "playwright test --workers=1",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
@@ -20,6 +23,7 @@
   "license": "ISC",
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
-    "@playwright/test": "^1.56.1"
+    "@playwright/test": "^1.56.1",
+    "husky": "^9.1.7"
   }
 }

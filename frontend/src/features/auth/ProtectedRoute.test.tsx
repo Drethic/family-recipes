@@ -7,7 +7,7 @@ import { mockUser, mockAdmin } from '@/test/mocks/mockData';
 import { UserRole } from '@/types';
 import { Route, Routes, MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider } from '@/contexts/ThemeProvider';
 
 describe('ProtectedRoute', () => {
   it('renders children when user is authenticated and has required role', () => {

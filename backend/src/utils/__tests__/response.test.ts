@@ -23,9 +23,9 @@ describe('Response Utilities', () => {
     statusMock = vi.fn().mockReturnThis();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
-      send: sendMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
+      send: sendMock as unknown as Response['send'],
     };
   });
 

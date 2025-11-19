@@ -3,6 +3,7 @@ import { useGetRecipeByIdQuery } from '@/features/recipes/recipeApi';
 import { formatTime, formatFullName, getTotalTime } from '@/utils/formatters';
 import { DIFFICULTY_LABELS } from '@/utils/constants';
 import { Header } from '@/components/layout/Header';
+import { ImageCarousel } from '@/components/recipe/ImageCarousel';
 import { useAppSelector } from '@/app/hooks';
 import { UserRole } from '@/types';
 
@@ -35,6 +36,14 @@ export const RecipeDetailPage = () => {
   // Check if user can edit (owner or admin)
   const canEdit = user && (user.id === recipe.author_id || user.role === UserRole.ADMIN);
 
+  // Filter images into final product images and step images
+  const finalProductImages = recipe.images?.filter((img) => !img.instruction_id).sort((a, b) => a.order_index - b.order_index) || [];
+
+  // Create a map of instruction_id to image for step images
+  const stepImageMap = new Map(
+    recipe.images?.filter((img) => img.instruction_id).map((img) => [img.instruction_id, img]) || []
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -64,6 +73,13 @@ export const RecipeDetailPage = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Image Carousel */}
+          {finalProductImages.length > 0 && (
+            <div className="p-8 pb-0">
+              <ImageCarousel images={finalProductImages} recipeName={recipe.title} />
+            </div>
+          )}
+
           <div className="p-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">{recipe.title}</h1>
             <p className="text-gray-600 mb-6">{recipe.description}</p>
@@ -108,13 +124,28 @@ export const RecipeDetailPage = () => {
 
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Instructions</h2>
-              <ol className="space-y-4">
-                {recipe.instructions?.map((instruction, index) => (
-                  <li key={instruction.id || index} className="flex">
-                    <span className="font-bold mr-4">{instruction.step_number}.</span>
-                    <span>{instruction.description}</span>
-                  </li>
-                ))}
+              <ol className="space-y-6">
+                {recipe.instructions?.map((instruction, index) => {
+                  const stepImage = instruction.id ? stepImageMap.get(instruction.id) : undefined;
+
+                  return (
+                    <li key={instruction.id || index} className="flex flex-col">
+                      <div className="flex">
+                        <span className="font-bold mr-4">{instruction.step_number}.</span>
+                        <span>{instruction.description}</span>
+                      </div>
+                      {stepImage && (
+                        <div className="ml-8 mt-3">
+                          <img
+                            src={stepImage.url}
+                            alt={stepImage.alt_text || `Step ${instruction.step_number} image`}
+                            className="max-w-md w-full h-auto rounded-lg shadow-md"
+                          />
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
             </div>
 

@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { ThemeProvider, useTheme } from './ThemeContext';
+import { ThemeProvider } from './ThemeProvider';
+import { useTheme } from '@/hooks/useTheme';
 import authReducer from '@/features/auth/authSlice';
 import { ThemePreference, User } from '@/types';
 import { mockUser } from '@/test/mocks/mockData';
@@ -155,11 +156,12 @@ describe('ThemeContext', () => {
     // Initially light (matchMedia mocked to return false)
     expect(result.current.theme).toBe('light');
 
+    // Verify the listener was registered
+    expect(changeListener).toBeTruthy();
+
     // Simulate system preference change by calling the listener directly
     act(() => {
-      if (changeListener) {
-        changeListener();
-      }
+      changeListener!();
     });
 
     // Theme should still be light because our mock matchMedia always returns matches: false

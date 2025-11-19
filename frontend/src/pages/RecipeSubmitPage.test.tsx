@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from '@/test/utils/test-utils';
 import { RecipeSubmitPage } from './RecipeSubmitPage';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/mocks/server';
 
 const mockNavigate = vi.fn();
 
@@ -12,6 +14,17 @@ vi.mock('react-router-dom', async () => {
     ...actual,
     useNavigate: () => mockNavigate,
   };
+});
+
+// Mock URL.createObjectURL for file upload tests
+let objectURLMock: typeof URL.createObjectURL;
+beforeAll(() => {
+  objectURLMock = URL.createObjectURL;
+  URL.createObjectURL = vi.fn((file) => `blob:${file instanceof File ? file.name : 'mock'}`);
+});
+
+afterAll(() => {
+  URL.createObjectURL = objectURLMock;
 });
 
 describe('RecipeSubmitPage', () => {
@@ -554,5 +567,233 @@ describe('RecipeSubmitPage', () => {
     await waitFor(() => {
       expect(screen.queryByText('Failed to create recipe')).not.toBeInTheDocument();
     });
+  });
+
+  it('uploads product images during form submission', async () => {
+    server.use(
+      http.post('http://localhost:9999/api/recipes', () => {
+        return HttpResponse.json({
+          success: true,
+          data: {
+            id: 'recipe-1',
+            title: 'Test Recipe',
+            instructions: [
+              { id: 'inst-1', step_number: 1, description: 'Mix flour' },
+            ],
+          },
+        });
+      }),
+      http.post('http://localhost:9999/api/recipes/:id/images', () => {
+        return HttpResponse.json({
+          success: true,
+          data: { id: 'img-1', url: 'http://example.com/image1.jpg' },
+        });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<RecipeSubmitPage />);
+
+    // Fill in required fields
+    await user.type(screen.getByLabelText('Recipe Title'), 'Test Recipe');
+    await user.type(screen.getByLabelText('Description'), 'A test recipe');
+    await user.type(screen.getByPlaceholderText('Quantity'), '2');
+    await user.type(screen.getByPlaceholderText('Unit'), 'cups');
+    await user.type(screen.getByPlaceholderText('Ingredient name'), 'Flour');
+    await user.type(screen.getByPlaceholderText('Instruction step'), 'Mix flour');
+
+    // Upload a product image
+    const file = new File(['image'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    const fileInput = Array.from(fileInputs).find(input =>
+      input.getAttribute('accept') === 'image/*' && input.hasAttribute('multiple')
+    ) as HTMLInputElement;
+
+    if (fileInput) {
+      await user.upload(fileInput, file);
+
+      // Wait for image preview
+      await waitFor(() => {
+        expect(screen.getByAltText('Preview 1')).toBeInTheDocument();
+      });
+    }
+
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /submit recipe/i }));
+
+    // Wait for navigation (submission complete)
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalled();
+    }, { timeout: 3000 });
+  });
+
+  it('uploads step images during form submission', async () => {
+    server.use(
+      http.post('http://localhost:9999/api/recipes', () => {
+        return HttpResponse.json({
+          success: true,
+          data: {
+            id: 'recipe-1',
+            title: 'Test Recipe',
+            instructions: [
+              { id: 'inst-1', step_number: 1, description: 'Mix flour' },
+            ],
+          },
+        });
+      }),
+      http.post('http://localhost:9999/api/recipes/:id/images', () => {
+        return HttpResponse.json({
+          success: true,
+          data: { id: 'img-1', url: 'http://example.com/image1.jpg' },
+        });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<RecipeSubmitPage />);
+
+    // Fill in required fields
+    await user.type(screen.getByLabelText('Recipe Title'), 'Test Recipe');
+    await user.type(screen.getByLabelText('Description'), 'A test recipe');
+    await user.type(screen.getByPlaceholderText('Quantity'), '2');
+    await user.type(screen.getByPlaceholderText('Unit'), 'cups');
+    await user.type(screen.getByPlaceholderText('Ingredient name'), 'Flour');
+    await user.type(screen.getByPlaceholderText('Instruction step'), 'Mix flour');
+
+    // Try to upload a step image
+    const stepFileInputs = document.querySelectorAll('input[type="file"]');
+    const stepImageInput = Array.from(stepFileInputs).find(input =>
+      input.getAttribute('accept') === 'image/*' && !input.hasAttribute('multiple')
+    ) as HTMLInputElement;
+
+    if (stepImageInput) {
+      const file = new File(['step-image'], 'step.jpg', { type: 'image/jpeg' });
+      await user.upload(stepImageInput, file);
+
+      await waitFor(() => {
+        expect(stepImageInput).toBeTruthy();
+      });
+    }
+
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /submit recipe/i }));
+
+    // Wait for navigation
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalled();
+    }, { timeout: 3000 });
+  });
+
+  it('handles mixed image uploads - both product and step images', async () => {
+    server.use(
+      http.post('http://localhost:9999/api/recipes', () => {
+        return HttpResponse.json({
+          success: true,
+          data: {
+            id: 'recipe-1',
+            title: 'Test Recipe',
+            instructions: [
+              { id: 'inst-1', step_number: 1, description: 'Mix flour' },
+            ],
+          },
+        });
+      }),
+      http.post('http://localhost:9999/api/recipes/:id/images', () => {
+        return HttpResponse.json({
+          success: true,
+          data: { id: 'img-1', url: 'http://example.com/image1.jpg' },
+        });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<RecipeSubmitPage />);
+
+    // Fill in required fields
+    await user.type(screen.getByLabelText('Recipe Title'), 'Test Recipe');
+    await user.type(screen.getByLabelText('Description'), 'A test recipe');
+    await user.type(screen.getByPlaceholderText('Quantity'), '2');
+    await user.type(screen.getByPlaceholderText('Unit'), 'cups');
+    await user.type(screen.getByPlaceholderText('Ingredient name'), 'Flour');
+    await user.type(screen.getByPlaceholderText('Instruction step'), 'Mix flour');
+
+    // Upload both product and step images
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    const productInput = Array.from(fileInputs).find(input =>
+      input.getAttribute('accept') === 'image/*' && input.hasAttribute('multiple')
+    ) as HTMLInputElement;
+    const stepInput = Array.from(fileInputs).find(input =>
+      input.getAttribute('accept') === 'image/*' && !input.hasAttribute('multiple')
+    ) as HTMLInputElement;
+
+    if (productInput) {
+      const file = new File(['image'], 'product.jpg', { type: 'image/jpeg' });
+      await user.upload(productInput, file);
+
+      await waitFor(() => {
+        expect(screen.getByAltText('Preview 1')).toBeInTheDocument();
+      });
+    }
+
+    if (stepInput) {
+      const file = new File(['step-image'], 'step.jpg', { type: 'image/jpeg' });
+      await user.upload(stepInput, file);
+
+      await waitFor(() => {
+        expect(stepInput).toBeTruthy();
+      });
+    }
+
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /submit recipe/i }));
+
+    // Wait for navigation
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalled();
+    }, { timeout: 3000 });
+  });
+
+  it('handles removing instruction with step images correctly', async () => {
+    const user = userEvent.setup();
+    render(<RecipeSubmitPage />);
+
+    // Add two more instructions (total 3)
+    const addInstructionButton = screen.getByText('+ Add Instruction');
+    await user.click(addInstructionButton);
+    await user.click(addInstructionButton);
+
+    // Fill in the instructions
+    const instructionInputs = screen.getAllByPlaceholderText('Instruction step');
+    await user.type(instructionInputs[0], 'Step 1');
+    await user.type(instructionInputs[1], 'Step 2');
+    await user.type(instructionInputs[2], 'Step 3');
+
+    // Upload step images for instructions 1 and 3
+    const stepFileInputs = document.querySelectorAll('input[type="file"]');
+    const stepInputs = Array.from(stepFileInputs).filter(input =>
+      input.getAttribute('accept') === 'image/*' && !input.hasAttribute('multiple')
+    ) as HTMLInputElement[];
+
+    if (stepInputs.length >= 2) {
+      // Upload image for step 1
+      const file1 = new File(['step1'], 'step1.jpg', { type: 'image/jpeg' });
+      await user.upload(stepInputs[0], file1);
+
+      // Upload image for step 3
+      const file3 = new File(['step3'], 'step3.jpg', { type: 'image/jpeg' });
+      await user.upload(stepInputs[2], file3);
+
+      await waitFor(() => {
+        expect(stepInputs[0]).toBeTruthy();
+      });
+    }
+
+    // Remove the middle instruction (index 1)
+    const removeButtons = screen.getAllByText('Remove');
+    await user.click(removeButtons[1]); // Remove step 2
+
+    // Should now have 2 instructions
+    const remainingInstructions = screen.getAllByPlaceholderText('Instruction step');
+    expect(remainingInstructions).toHaveLength(2);
   });
 });

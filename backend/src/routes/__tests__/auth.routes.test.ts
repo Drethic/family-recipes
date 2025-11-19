@@ -5,6 +5,15 @@ import authRoutes from '../auth.routes';
 import { AuthController } from '../../controllers/authController';
 import { authenticate } from '../../middleware/auth';
 
+// Type for Express route layer with methods property
+interface RouteLayer {
+  route?: {
+    path: string;
+    stack: unknown[];
+    methods: Record<string, boolean>;
+  };
+}
+
 vi.mock('../../controllers/authController');
 vi.mock('../../middleware/auth');
 
@@ -16,7 +25,7 @@ describe('Auth Routes', () => {
     app.use(express.json());
     app.use('/api/auth', authRoutes);
 
-    vi.mocked(authenticate).mockImplementation((req, res, next) => next());
+    vi.mocked(authenticate).mockImplementation((_req, _res, next) => next());
   });
 
   afterEach(() => {
@@ -25,12 +34,14 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/register', () => {
     it('should call register controller', async () => {
-      vi.mocked(AuthController.register).mockImplementation((req, res) => {
+      vi.mocked(AuthController.register).mockImplementation((_, res) => {
+        
+         // Not used in mock
         res.status(201).json({ success: true });
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/register')
         .send({
           email: 'test@example.com',
@@ -147,12 +158,13 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/login', () => {
     it('should call login controller', async () => {
-      vi.mocked(AuthController.login).mockImplementation((req, res) => {
+      vi.mocked(AuthController.login).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/login')
         .send({
           email: 'test@example.com',
@@ -218,12 +230,13 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/refresh', () => {
     it('should call refresh controller', async () => {
-      vi.mocked(AuthController.refresh).mockImplementation((req, res) => {
+      vi.mocked(AuthController.refresh).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/refresh')
         .set('Cookie', ['refreshToken=test_token']);
 
@@ -231,7 +244,8 @@ describe('Auth Routes', () => {
     });
 
     it('should not require authentication', async () => {
-      vi.mocked(AuthController.refresh).mockImplementation((req, res) => {
+      vi.mocked(AuthController.refresh).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -245,19 +259,21 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should call logout controller', async () => {
-      vi.mocked(AuthController.logout).mockImplementation((req, res) => {
+      vi.mocked(AuthController.logout).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .post('/api/auth/logout');
 
       expect(AuthController.logout).toHaveBeenCalled();
     });
 
     it('should not require authentication', async () => {
-      vi.mocked(AuthController.logout).mockImplementation((req, res) => {
+      vi.mocked(AuthController.logout).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
@@ -271,23 +287,24 @@ describe('Auth Routes', () => {
 
   describe('GET /api/auth/me', () => {
     it('should call getMe controller', async () => {
-      vi.mocked(AuthController.getMe).mockImplementation((req, res) => {
+      vi.mocked(AuthController.getMe).mockImplementation((_, res) => {
+        
         res.status(200).json({ success: true });
         return Promise.resolve();
       });
 
-      const response = await request(app)
+      await request(app)
         .get('/api/auth/me');
 
       expect(AuthController.getMe).toHaveBeenCalled();
     });
 
     it('should require authentication', async () => {
-      vi.mocked(authenticate).mockImplementationOnce((req, res) => {
+      vi.mocked(authenticate).mockImplementationOnce((_, res) => {
         res.status(401).json({ success: false, message: 'Unauthorized' });
       });
 
-      const response = await request(app)
+      await request(app)
         .get('/api/auth/me');
 
       expect(authenticate).toHaveBeenCalled();
@@ -297,37 +314,37 @@ describe('Auth Routes', () => {
   describe('Route configuration', () => {
     it('should have POST /register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const registerRoute = routes.find((layer) => layer.route.path === '/register');
+      const registerRoute = routes.find((layer) => layer.route?.path === '/register');
       expect(registerRoute).toBeDefined();
-      expect(registerRoute?.route.methods.post).toBe(true);
+      expect((registerRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have POST /login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const loginRoute = routes.find((layer) => layer.route.path === '/login');
+      const loginRoute = routes.find((layer) => layer.route?.path === '/login');
       expect(loginRoute).toBeDefined();
-      expect(loginRoute?.route.methods.post).toBe(true);
+      expect((loginRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have POST /refresh route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const refreshRoute = routes.find((layer) => layer.route.path === '/refresh');
+      const refreshRoute = routes.find((layer) => layer.route?.path === '/refresh');
       expect(refreshRoute).toBeDefined();
-      expect(refreshRoute?.route.methods.post).toBe(true);
+      expect((refreshRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have POST /logout route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const logoutRoute = routes.find((layer) => layer.route.path === '/logout');
+      const logoutRoute = routes.find((layer) => layer.route?.path === '/logout');
       expect(logoutRoute).toBeDefined();
-      expect(logoutRoute?.route.methods.post).toBe(true);
+      expect((logoutRoute as RouteLayer)?.route?.methods.post).toBe(true);
     });
 
     it('should have GET /me route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const meRoute = routes.find((layer) => layer.route.path === '/me');
+      const meRoute = routes.find((layer) => layer.route?.path === '/me');
       expect(meRoute).toBeDefined();
-      expect(meRoute?.route.methods.get).toBe(true);
+      expect((meRoute as RouteLayer)?.route?.methods.get).toBe(true);
     });
 
     it('should have exactly 5 routes', () => {
@@ -337,61 +354,61 @@ describe('Auth Routes', () => {
 
     it('should apply validators to register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const registerRoute = routes.find((layer) => layer.route.path === '/register');
-      expect(registerRoute?.route.stack.length).toBeGreaterThan(1);
+      const registerRoute = routes.find((layer) => layer.route?.path === '/register');
+      expect(registerRoute?.route?.stack.length).toBeGreaterThan(1);
     });
 
     it('should apply validators to login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const loginRoute = routes.find((layer) => layer.route.path === '/login');
-      expect(loginRoute?.route.stack.length).toBeGreaterThan(1);
+      const loginRoute = routes.find((layer) => layer.route?.path === '/login');
+      expect(loginRoute?.route?.stack.length).toBeGreaterThan(1);
     });
 
     it('should apply authenticate middleware to /me route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const meRoute = routes.find((layer) => layer.route.path === '/me');
-      expect(meRoute?.route.stack.length).toBeGreaterThan(1);
+      const meRoute = routes.find((layer) => layer.route?.path === '/me');
+      expect(meRoute?.route?.stack.length).toBeGreaterThan(1);
     });
 
     it('should not have GET /register route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const registerRoute = routes.find((layer) => layer.route.path === '/register');
-      expect(registerRoute?.route.methods.get).toBeUndefined();
+      const registerRoute = routes.find((layer) => layer.route?.path === '/register');
+      expect((registerRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /login route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const loginRoute = routes.find((layer) => layer.route.path === '/login');
-      expect(loginRoute?.route.methods.get).toBeUndefined();
+      const loginRoute = routes.find((layer) => layer.route?.path === '/login');
+      expect((loginRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /logout route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const logoutRoute = routes.find((layer) => layer.route.path === '/logout');
-      expect(logoutRoute?.route.methods.get).toBeUndefined();
+      const logoutRoute = routes.find((layer) => layer.route?.path === '/logout');
+      expect((logoutRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have GET /refresh route', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const refreshRoute = routes.find((layer) => layer.route.path === '/refresh');
-      expect(refreshRoute?.route.methods.get).toBeUndefined();
+      const refreshRoute = routes.find((layer) => layer.route?.path === '/refresh');
+      expect((refreshRoute as RouteLayer)?.route?.methods.get).toBeUndefined();
     });
 
     it('should not have PUT routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const putRoutes = routes.filter((layer) => layer.route.methods.put);
+      const putRoutes = routes.filter((layer) => (layer as RouteLayer).route?.methods.put);
       expect(putRoutes).toHaveLength(0);
     });
 
     it('should not have DELETE routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const deleteRoutes = routes.filter((layer) => layer.route.methods.delete);
+      const deleteRoutes = routes.filter((layer) => (layer as RouteLayer).route?.methods.delete);
       expect(deleteRoutes).toHaveLength(0);
     });
 
     it('should not have PATCH routes', () => {
       const routes = authRoutes.stack.filter((layer) => layer.route);
-      const patchRoutes = routes.filter((layer) => layer.route.methods.patch);
+      const patchRoutes = routes.filter((layer) => (layer as RouteLayer).route?.methods.patch);
       expect(patchRoutes).toHaveLength(0);
     });
   });

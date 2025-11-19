@@ -21,8 +21,8 @@ describe('ValidateRequest Middleware', () => {
     statusMock = vi.fn().mockReturnThis();
 
     mockRes = {
-      status: statusMock,
-      json: jsonMock,
+      status: statusMock as unknown as Response['status'],
+      json: jsonMock as unknown as Response['json'],
     };
 
     mockNext = vi.fn();
@@ -32,7 +32,7 @@ describe('ValidateRequest Middleware', () => {
     vi.mocked(validationResult).mockReturnValue({
       isEmpty: () => true,
       array: () => [],
-    } as ReturnType<typeof validationResult>);
+    } as unknown as ReturnType<typeof validationResult>);
 
     validateRequest(mockReq as Request, mockRes as Response, mockNext);
 

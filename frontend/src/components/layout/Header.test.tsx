@@ -1,25 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '@/test/utils/test-utils';
+import { render, renderWithRouter } from '@/test/utils/test-utils';
 import { Header } from './Header';
 import { mockUser, mockAdmin } from '@/test/mocks/mockData';
 
-const mockNavigate = vi.fn();
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
-
 describe('Header Component', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    vi.clearAllMocks();
-  });
 
   it('renders the site title', () => {
     render(<Header />);
@@ -88,27 +74,90 @@ describe('Header Component', () => {
       },
     };
 
-    render(<Header />, { preloadedState });
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
 
     const logoutButton = screen.getByText('Logout');
     await user.click(logoutButton);
 
+    // After logout, user should be redirected to home and see login/register links
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(screen.getByText('Login')).toBeInTheDocument();
+      expect(screen.getByText('Register')).toBeInTheDocument();
     });
   });
 
-  it('has correct navigation links', () => {
-    render(<Header />);
+  it('handles logout failure gracefully', async () => {
+    const user = userEvent.setup();
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const browseLink = screen.getByText('Browse Recipes');
-    expect(browseLink).toHaveAttribute('href', '/recipes');
+    const preloadedState = {
+      auth: {
+        user: mockUser,
+        token: 'error-token', // This triggers error in MSW handler
+        isAuthenticated: true,
+      },
+    };
 
-    const homeLink = screen.getByText('Family Recipes');
-    expect(homeLink).toHaveAttribute('href', '/');
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
+
+    const logoutButton = screen.getByText('Logout');
+    await user.click(logoutButton);
+
+    // Even on error, user should be logged out and redirected
+    await waitFor(() => {
+      expect(screen.getByText('Login')).toBeInTheDocument();
+      expect(screen.getByText('Register')).toBeInTheDocument();
+    });
+
+    // Verify error was logged
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 
-  it('has correct member navigation links', () => {
+  it('navigates to recipes page when Browse Recipes is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ initialEntries: ['/'] });
+
+    // Verify we start on home page
+    expect(screen.getByText('Welcome to Our Family Recipe Collection')).toBeInTheDocument();
+
+    // Click Browse Recipes link in header (first occurrence)
+    const browseLinks = screen.getAllByText('Browse Recipes');
+    await user.click(browseLinks[0]);
+
+    // Verify navigation to recipes page
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'All Recipes' })).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to home page when site title is clicked', async () => {
+    const user = userEvent.setup();
+    // Start from home, then go to recipes, then back to home
+    renderWithRouter({ initialEntries: ['/'] });
+
+    // Navigate to recipes first
+    const browseLinks = screen.getAllByText('Browse Recipes');
+    await user.click(browseLinks[0]);
+
+    // Wait for recipes page to load
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'All Recipes' })).toBeInTheDocument();
+    });
+
+    // Click Family Recipes title in header to go back home
+    const homeLinks = screen.getAllByText('Family Recipes');
+    await user.click(homeLinks[0]);
+
+    // Verify navigation back to home page
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Welcome to Our Family Recipe Collection', level: 2 })).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to My Recipes when clicked (authenticated member)', async () => {
+    const user = userEvent.setup();
     const preloadedState = {
       auth: {
         user: mockUser,
@@ -117,14 +166,64 @@ describe('Header Component', () => {
       },
     };
 
-    render(<Header />, { preloadedState });
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
 
-    expect(screen.getByText('My Recipes')).toHaveAttribute('href', '/member/my-recipes');
-    expect(screen.getByText('Submit Recipe')).toHaveAttribute('href', '/member/submit');
-    expect(screen.getByText('Profile')).toHaveAttribute('href', '/member/profile');
+    // Click My Recipes link in header
+    const myRecipesLinks = screen.getAllByText('My Recipes');
+    await user.click(myRecipesLinks[0]);
+
+    // Verify navigation to member dashboard - check for the h2 heading
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'My Recipes', level: 2 })).toBeInTheDocument();
+    });
   });
 
-  it('has correct admin navigation link', () => {
+  it('navigates to Submit Recipe when clicked (authenticated member)', async () => {
+    const user = userEvent.setup();
+    const preloadedState = {
+      auth: {
+        user: mockUser,
+        token: 'mock-token',
+        isAuthenticated: true,
+      },
+    };
+
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
+
+    // Click Submit Recipe link
+    const submitLink = screen.getByText('Submit Recipe');
+    await user.click(submitLink);
+
+    // Verify navigation to submit page
+    await waitFor(() => {
+      expect(screen.getByText('Submit a New Recipe')).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to Profile when clicked (authenticated member)', async () => {
+    const user = userEvent.setup();
+    const preloadedState = {
+      auth: {
+        user: mockUser,
+        token: 'mock-token',
+        isAuthenticated: true,
+      },
+    };
+
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
+
+    // Click Profile link
+    const profileLink = screen.getByText('Profile');
+    await user.click(profileLink);
+
+    // Verify navigation to profile page
+    await waitFor(() => {
+      expect(screen.getByText('Profile Information')).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to Admin Dashboard when clicked (authenticated admin)', async () => {
+    const user = userEvent.setup();
     const preloadedState = {
       auth: {
         user: mockAdmin,
@@ -133,32 +232,15 @@ describe('Header Component', () => {
       },
     };
 
-    render(<Header />, { preloadedState });
+    renderWithRouter({ preloadedState, initialEntries: ['/'] });
 
-    expect(screen.getByText('Admin Dashboard')).toHaveAttribute('href', '/admin/dashboard');
-  });
+    // Click Admin Dashboard link
+    const adminLink = screen.getByText('Admin Dashboard');
+    await user.click(adminLink);
 
-  it('handles logout error gracefully', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const user = userEvent.setup();
-    const preloadedState = {
-      auth: {
-        user: mockUser,
-        token: 'error-token',
-        isAuthenticated: true,
-      },
-    };
-
-    render(<Header />, { preloadedState });
-
-    const logoutButton = screen.getByText('Logout');
-    await user.click(logoutButton);
-
+    // Verify navigation to admin dashboard - check for Pending Recipes heading
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(screen.getByRole('heading', { name: 'Pending Recipes' })).toBeInTheDocument();
     });
-
-    consoleSpy.mockRestore();
   });
 });
