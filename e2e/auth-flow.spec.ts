@@ -71,14 +71,17 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[name="password"]', 'SecurePassword123!');
     await page.fill('input[name="confirmPassword"]', 'SecurePassword123!');
 
+    // Set up response listener BEFORE clicking submit
+    const responsePromise = page.waitForResponse(
+      response => response.url().includes('/api/auth/register') && response.status() === 201,
+      { timeout: 10000 }
+    );
+
     // Submit form
     await page.click('button[type="submit"]');
 
     // Wait for the registration API call to complete
-    await page.waitForResponse(response =>
-      response.url().includes('/api/auth/register') && response.status() === 201,
-      { timeout: 10000 }
-    );
+    await responsePromise;
 
     // Give React time to update the UI
     await page.waitForTimeout(500);
@@ -134,14 +137,17 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[name="email"]', 'admin@recipes.com');
     await page.fill('input[name="password"]', 'admin123');
 
+    // Set up response listener BEFORE clicking submit
+    const responsePromise = page.waitForResponse(
+      response => response.url().includes('/api/auth/login') && response.status() === 200,
+      { timeout: 10000 }
+    );
+
     // Submit login form
     await page.click('button[type="submit"]');
 
     // Wait for the login API call to complete
-    await page.waitForResponse(response =>
-      response.url().includes('/api/auth/login') && response.status() === 200,
-      { timeout: 10000 }
-    );
+    await responsePromise;
 
     // Wait for navigation to complete
     await page.waitForLoadState('networkidle');
@@ -188,13 +194,17 @@ test.describe('Authentication Flow', () => {
     await page.waitForLoadState('networkidle');
     await page.fill('input[name="email"]', 'admin@recipes.com');
     await page.fill('input[name="password"]', 'admin123');
+
+    // Set up response listener BEFORE clicking submit
+    const loginPromise = page.waitForResponse(
+      response => response.url().includes('/api/auth/login') && response.status() === 200,
+      { timeout: 10000 }
+    );
+
     await page.click('button[type="submit"]');
 
     // Wait for the login API call to complete
-    await page.waitForResponse(response =>
-      response.url().includes('/api/auth/login') && response.status() === 200,
-      { timeout: 10000 }
-    );
+    await loginPromise;
 
     // Wait for navigation after login
     await page.waitForLoadState('networkidle');
@@ -203,14 +213,17 @@ test.describe('Authentication Flow', () => {
     // Wait for logout button to be visible
     await expect(page.getByRole('button', { name: /logout/i })).toBeVisible({ timeout: 10000 });
 
+    // Set up response listener BEFORE clicking logout
+    const logoutPromise = page.waitForResponse(
+      response => response.url().includes('/api/auth/logout') && response.status() === 200,
+      { timeout: 10000 }
+    );
+
     // Click logout button
     await page.getByRole('button', { name: /logout/i }).click();
 
     // Wait for the logout API call to complete
-    await page.waitForResponse(response =>
-      response.url().includes('/api/auth/logout') && response.status() === 200,
-      { timeout: 10000 }
-    );
+    await logoutPromise;
 
     // Wait for navigation
     await page.waitForLoadState('networkidle');

@@ -20,13 +20,17 @@ async function login(page: Page, email: string, password: string): Promise<void>
   await page.waitForLoadState('networkidle');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
+
+  // Set up response listener BEFORE clicking submit
+  const responsePromise = page.waitForResponse(
+    response => response.url().includes('/api/auth/login') && response.status() === 200,
+    { timeout: 10000 }
+  );
+
   await page.click('button[type="submit"]');
 
   // Wait for the login API call to complete
-  await page.waitForResponse(response =>
-    response.url().includes('/api/auth/login') && response.status() === 200,
-    { timeout: 10000 }
-  );
+  await responsePromise;
 
   // Wait for navigation and React to update UI
   await page.waitForLoadState('networkidle');
