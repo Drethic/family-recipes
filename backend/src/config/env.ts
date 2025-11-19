@@ -25,6 +25,8 @@ interface EnvConfig {
   awsCloudfrontUrl?: string;
   rateLimitWindowMs: number;
   rateLimitMaxRequests: number;
+  authRateLimitWindowMs: number;
+  authRateLimitMaxRequests: number;
 }
 
 const config: EnvConfig = {
@@ -50,6 +52,8 @@ const config: EnvConfig = {
   awsCloudfrontUrl: process.env.AWS_CLOUDFRONT_URL,
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
   rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+  authRateLimitWindowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
+  authRateLimitMaxRequests: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '5', 10), // 5 requests per window (production default)
 };
 
 export default config;

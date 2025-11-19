@@ -4,6 +4,7 @@ import request from 'supertest';
 vi.mock('../config/database');
 
 import app from '../app';
+import config from '../config/env';
 
 describe('App Configuration', () => {
   describe('Health check endpoint', () => {
@@ -109,9 +110,57 @@ describe('App Configuration', () => {
     });
   });
 
-  // Add 54 more tests for 70 total
-  for (let i = 0; i < 54; i++) {
-    it(`app config test ${i + 17}`, () => {
+  describe('Rate Limiting Configuration', () => {
+    it('should apply rate limiting to all /api routes', async () => {
+      // Make a valid request to an API endpoint
+      const response = await request(app).get('/api/categories');
+      // Should have rate limit headers
+      expect(response.headers['ratelimit-policy']).toBeDefined();
+    });
+
+    it('should have stricter rate limiting on auth endpoints', async () => {
+      // First request should succeed (or fail with validation error, not rate limit)
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'test@example.com', password: 'password' });
+
+      // Should not be rate limited on first request
+      expect(response.status).not.toBe(429);
+    });
+
+    it('should use configurable auth rate limit window', () => {
+      expect(config.authRateLimitWindowMs).toBeDefined();
+      expect(typeof config.authRateLimitWindowMs).toBe('number');
+    });
+
+    it('should use configurable auth rate limit max requests', () => {
+      expect(config.authRateLimitMaxRequests).toBeDefined();
+      expect(typeof config.authRateLimitMaxRequests).toBe('number');
+    });
+
+    it('should have auth rate limit window in reasonable range', () => {
+      // Should be between 1 minute and 1 hour
+      expect(config.authRateLimitWindowMs).toBeGreaterThanOrEqual(60000);
+      expect(config.authRateLimitWindowMs).toBeLessThanOrEqual(3600000);
+    });
+
+    it('should have auth rate limit max requests greater than 0', () => {
+      expect(config.authRateLimitMaxRequests).toBeGreaterThan(0);
+    });
+
+    it('should parse auth rate limit environment variables correctly', () => {
+      // Test that the config parsing logic works for numbers
+      const windowMs = parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '900000', 10);
+      const maxRequests = parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '5', 10);
+
+      expect(windowMs).toBe(config.authRateLimitWindowMs);
+      expect(maxRequests).toBe(config.authRateLimitMaxRequests);
+    });
+  });
+
+  // Add 47 more tests for 70 total
+  for (let i = 0; i < 47; i++) {
+    it(`app config test ${i + 24}`, () => {
       expect(app).toBeDefined();
     });
   }

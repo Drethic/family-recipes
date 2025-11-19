@@ -22,6 +22,8 @@ interface AppConfig {
   max_file_size: number;
   rate_limit_window_ms: number;
   rate_limit_max_requests: number;
+  auth_rate_limit_window_ms: number;
+  auth_rate_limit_max_requests: number;
 }
 
 interface TestUsers {

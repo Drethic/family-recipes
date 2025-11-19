@@ -102,6 +102,8 @@ jobs:
 
       - name: Start services with docker compose
         run: docker compose up -d
+        env:
+          AUTH_RATE_LIMIT_MAX_REQUESTS: 300
 
       - name: Wait for database to be ready
         run: |

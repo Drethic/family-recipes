@@ -20,6 +20,8 @@ export interface EnvConfig {
   awsSecretAccessKey?: string;
   rateLimitWindowMs: number;
   rateLimitMaxRequests: number;
+  authRateLimitWindowMs: number;
+  authRateLimitMaxRequests: number;
 }
 
 /**
@@ -100,6 +102,12 @@ export async function loadConfig(): Promise<EnvConfig> {
     rateLimitMaxRequests:
       appConfig?.rate_limit_max_requests ||
       parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    authRateLimitWindowMs:
+      appConfig?.auth_rate_limit_window_ms ||
+      parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '900000', 10),
+    authRateLimitMaxRequests:
+      appConfig?.auth_rate_limit_max_requests ||
+      parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '5', 10),
   };
 
   console.log('Configuration loaded successfully');
